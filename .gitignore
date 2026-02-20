@@ -361,3 +361,60 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+##
+## C++ / Premake specific additions
+##
+
+# Premake generated project files (regenerate with GenerateProjects.bat)
+*.sln
+*.vcxproj
+*.vcxproj.filters
+Makefile
+
+# Premake intermediate build directory
+bin-int/
+
+# C++ compiled files
+*.o
+*.lo
+*.slo
+*.ko
+*.obj
+*.elf
+*.gch
+*.pch
+
+# C++ compiled libraries
+*.lib
+*.a
+*.la
+*.lo
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# C++ executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux files
+*~
+.directory
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VSCode
+.vscode/
