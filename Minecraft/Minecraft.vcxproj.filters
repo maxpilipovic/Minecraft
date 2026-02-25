@@ -21,6 +21,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Logger.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mc.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\vendor\glad\src\glad.c">
       <Filter>vendor\glad\src</Filter>
     </ClCompile>
@@ -44,6 +52,9 @@
     </ClCompile>
     <ClCompile Include="..\vendor\imgui\imgui_widgets.cpp">
       <Filter>vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Logger.cpp">
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
