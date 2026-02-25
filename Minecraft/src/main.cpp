@@ -1,9 +1,11 @@
 #include "mc.h"
-#include "Logger.h"
+#include "Application.h"
 
 int main()
 {
+    Application& app = Application::Get();
+    app.Run();
+
     
-    Logger::Init();
     return 0;
 }
