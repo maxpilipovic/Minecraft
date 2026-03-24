@@ -99,6 +99,12 @@
   <ItemGroup>
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\Renderer\IndexBuffer.h" />
+    <ClInclude Include="src\Renderer\Renderer.h" />
+    <ClInclude Include="src\Renderer\Shader.h" />
+    <ClInclude Include="src\Renderer\Texture.h" />
+    <ClInclude Include="src\Renderer\VertexArray.h" />
+    <ClInclude Include="src\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\mc.h" />
   </ItemGroup>
@@ -113,6 +119,12 @@
     <ClCompile Include="..\vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\Renderer\IndexBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\stb_image_impl.cpp" />
