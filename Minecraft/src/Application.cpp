@@ -12,26 +12,29 @@
 
 Application& Application::Get()
 {
+    // Expose the single application instance used by the program.
     static Application instance;
     return instance;
 }
 
 Application::Application()
 {
-    //Logger Init
+    // Initialize logging before any startup code can emit messages.
     Logger::Init();
 
-    //Application Init
+    // Build the window and rendering state up front.
 	Init();
 }
 
 Application::~Application()
 {
+    // Release graphics resources before the process exits.
 	Shutdown();
 }
 
 void Application::Run()
 {
+    // Drive the main loop until the app is stopped or the window closes.
     while (m_Running && m_Window && !m_Window->ShouldClose())
     {
         double currentTime = glfwGetTime();
@@ -49,6 +52,7 @@ void Application::Run()
 
 void Application::Init()
 {
+    // Create the window and initialize the render resources for the cube scene.
     m_Window = std::make_unique<Window>(1280, 720, "Minecraft");
 
     //Check if window exists
@@ -151,7 +155,7 @@ void Application::Init()
     m_CubeVAO->AddBuffer(*m_CubeVBO, layout);
 
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
-    m_CubeTexture = std::make_unique<Texture>("../../../vendor/stb/data/map_01.png");
+    m_CubeTexture = std::make_unique<Texture>("../images/dirt.png");
 
     m_CubeShader->Bind();
     m_CubeShader->SetUniform1i("u_Texture", 0);
@@ -162,6 +166,7 @@ void Application::Init()
 
 void Application::Shutdown()
 {
+    // Tear down GPU-backed resources in reverse ownership order.
     m_CubeTexture.reset();
     m_CubeShader.reset();
     m_CubeIBO.reset();
@@ -172,11 +177,13 @@ void Application::Shutdown()
 
 void Application::Update(float dt)
 {
+    // Advance the cube rotation using frame time for smooth animation.
     m_CubeRotation += dt * 35.0f;
 }
 
 void Application::Render()
 {
+    // Skip rendering until all required scene resources are ready.
     if (!m_CubeVAO || !m_CubeIBO || !m_CubeShader || !m_CubeTexture)
     {
         return;

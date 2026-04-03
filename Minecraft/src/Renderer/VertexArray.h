@@ -5,6 +5,7 @@
 
 #include <vector>
 
+//How to interpret DATA. VAO is what does the data mean
 struct BufferElement
 {
     uint32_t Count = 0;
@@ -24,6 +25,7 @@ public:
     template<typename T>
     void Push(uint32_t count)
     {
+        //Enforces only valid OpenGL types.
         static_assert(sizeof(T) == 0, "Unsupported buffer element type");
     }
 
@@ -65,15 +67,23 @@ public:
     VertexArray();
     ~VertexArray();
 
+    //Do not allow copy
     VertexArray(const VertexArray&) = delete;
+
+    //Do not allow copy assignment
     VertexArray& operator=(const VertexArray&) = delete;
 
+    //Allow moves.
     VertexArray(VertexArray&& other) noexcept;
     VertexArray& operator=(VertexArray&& other) noexcept;
 
+
     void AddBuffer(const VertexBuffer& vertexBuffer, const BufferLayout& layout);
 
+    //Bind
     void Bind() const;
+
+    //Unbind
     void Unbind() const;
 
 private:

@@ -1,17 +1,24 @@
 #include "Texture.h"
-
+#include <filesystem>
 #include "Logger.h"
 
 Texture::Texture(const std::string& path)
     : m_Path(path)
 {
+    //Print working directory...
+    MC_CORE_INFO("Working directory: {}", std::filesystem::current_path().string());
+
     stbi_set_flip_vertically_on_load(1);
     unsigned char* data = stbi_load(path.c_str(), &m_Width, &m_Height, &m_Channels, 0);
     if (!data)
     {
-        MC_CORE_ERROR("Failed to load texture '{}'", path);
+        const char* reason = stbi_failure_reason();
+        MC_CORE_ERROR("Failed to load texture '{}'. Reason: {}", path, reason ? reason : "Unknown");
         return;
     }
+
+    //Successfully loaded TEXTURE!!
+    MC_CORE_INFO("Successfully LOADED TEXTURE!");
 
     GLenum internalFormat = 0;
     GLenum dataFormat = 0;

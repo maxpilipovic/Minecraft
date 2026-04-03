@@ -2,6 +2,7 @@
 
 #include "mc.h"
 
+//Raw data.  Vertex Buffer is just raw memory on the GPU.
 class VertexBuffer
 {
 public:

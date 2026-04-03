@@ -20,12 +20,14 @@ VertexBuffer::~VertexBuffer()
     }
 }
 
+//Move constructor
 VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept
     : m_RendererID(other.m_RendererID)
 {
     other.m_RendererID = 0;
 }
 
+//Move assignment operator
 VertexBuffer& VertexBuffer::operator=(VertexBuffer&& other) noexcept
 {
     if (this == &other)
@@ -45,7 +47,10 @@ VertexBuffer& VertexBuffer::operator=(VertexBuffer&& other) noexcept
 
 void VertexBuffer::SetData(const void* data, uint32_t size) const
 {
+    //Bind buffer (use it)
     Bind();
+
+    //Updates buffer data
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
 
@@ -56,5 +61,6 @@ void VertexBuffer::Bind() const
 
 void VertexBuffer::Unbind() const
 {
+    //Unbind buffer (dont use it)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
