@@ -3,8 +3,13 @@
 IndexBuffer::IndexBuffer(const uint32_t* indices, uint32_t count)
     : m_Count(count)
 {
+    //Assign a RendererID
     glGenBuffers(1, &m_RendererID);
+    
+    //Bind
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
+
+    //Send to GPU
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
 }
 
@@ -44,10 +49,12 @@ IndexBuffer& IndexBuffer::operator=(IndexBuffer&& other) noexcept
 
 void IndexBuffer::Bind() const
 {
+    //Bind
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 }
 
 void IndexBuffer::Unbind() const
 {
+    //Unbind
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

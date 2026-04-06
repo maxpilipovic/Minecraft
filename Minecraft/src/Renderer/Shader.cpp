@@ -4,11 +4,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+//Constructor
 Shader::Shader(const std::string& vertexSource, const std::string& fragmentSource)
 {
     m_RendererID = CreateShader(vertexSource, fragmentSource);
 }
 
+//Destructor
 Shader::~Shader()
 {
     if (m_RendererID != 0)
@@ -17,6 +19,7 @@ Shader::~Shader()
     }
 }
 
+//Move constructor
 Shader::Shader(Shader&& other) noexcept
     : m_RendererID(other.m_RendererID),
       m_UniformLocationCache(std::move(other.m_UniformLocationCache))
@@ -24,6 +27,7 @@ Shader::Shader(Shader&& other) noexcept
     other.m_RendererID = 0;
 }
 
+//Move assignment
 Shader& Shader::operator=(Shader&& other) noexcept
 {
     if (this == &other)
@@ -42,16 +46,19 @@ Shader& Shader::operator=(Shader&& other) noexcept
     return *this;
 }
 
+//Bind
 void Shader::Bind() const
 {
     glUseProgram(m_RendererID);
 }
 
+//Unbind
 void Shader::Unbind() const
 {
     glUseProgram(0);
 }
 
+//Uniforms
 void Shader::SetUniform1i(const std::string& name, int value)
 {
     glUniform1i(GetUniformLocation(name), value);
@@ -84,15 +91,22 @@ void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix)
 
 uint32_t Shader::CreateShader(const std::string& vertexSource, const std::string& fragmentSource)
 {
+    //Creates empty program
     const uint32_t program = glCreateProgram();
+
+    //Returns shader id
     const uint32_t vertexShader = CompileShader(GL_VERTEX_SHADER, vertexSource);
     const uint32_t fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
+    //These two compiled shaders belong to this program
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
+
+    //Link
     glLinkProgram(program);
     glValidateProgram(program);
 
+    //Ask OpenGL whether linking succeeded.
     int linkStatus = 0;
     glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
     if (linkStatus == GL_FALSE)
@@ -109,14 +123,18 @@ uint32_t Shader::CreateShader(const std::string& vertexSource, const std::string
         return 0;
     }
 
+    //Remove shader objects, GPU has everything
     glDetachShader(program, vertexShader);
     glDetachShader(program, fragmentShader);
+
+    //Delete shader
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
     return program;
 }
 
+//Compiles a shader
 uint32_t Shader::CompileShader(uint32_t type, const std::string& source)
 {
     const uint32_t shader = glCreateShader(type);
@@ -142,6 +160,7 @@ uint32_t Shader::CompileShader(uint32_t type, const std::string& source)
     return shader;
 }
 
+//Cache to grab old uniforms
 int Shader::GetUniformLocation(const std::string& name)
 {
     const auto it = m_UniformLocationCache.find(name);

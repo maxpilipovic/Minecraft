@@ -67,7 +67,11 @@ void Window::Init()
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         MC_CORE_ERROR("Failed to initialize GLAD");
+        return;
     }
+
+    //Set input mode. Hides cursor, locks to window, infinite mouse movement
+    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     SetVSync(true);
 }
@@ -81,4 +85,15 @@ void Window::Shutdown()
     }
 
     glfwTerminate();
+}
+
+bool Window::IsKeyPressed(int key) const
+{
+    return glfwGetKey(m_Window, key) == GLFW_PRESS;
+}
+
+//Get Mouse Pos
+void Window::GetMousePosition(double& x, double& y) const
+{
+    glfwGetCursorPos(m_Window, &x, &y);
 }

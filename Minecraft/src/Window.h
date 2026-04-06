@@ -19,6 +19,10 @@ public:
     int GetWidth() const { return m_Width; }
     int GetHeight() const { return m_Height; }
 
+    //Key stuff
+    bool IsKeyPressed(int key) const;
+    void GetMousePosition(double& x, double& y) const;
+
     GLFWwindow* GetNative() const { return m_Window; }
 
 private:
@@ -30,6 +34,10 @@ private:
     int m_Width;
     int m_Height;
     std::string m_Title;
+    
+    //Mouse Position
+    double x;
+    double y;
 
     bool m_VSync = true;
 };

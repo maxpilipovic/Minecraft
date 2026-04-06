@@ -22,11 +22,15 @@ Texture::Texture(const std::string& path)
 
     GLenum internalFormat = 0;
     GLenum dataFormat = 0;
+
+    //RGBA 4 bytes a pixel
     if (m_Channels == 4)
     {
         internalFormat = GL_RGBA8;
         dataFormat = GL_RGBA;
     }
+
+    //RGB - 3 bytes a pixel
     else if (m_Channels == 3)
     {
         internalFormat = GL_RGB8;
@@ -42,12 +46,16 @@ Texture::Texture(const std::string& path)
     glGenTextures(1, &m_RendererID);
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
+    //Change according to different texture rules
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+    //Upload to GPU
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+
+    //Creates smaller versions of texture (full, half, quater)
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -101,11 +109,13 @@ Texture& Texture::operator=(Texture&& other) noexcept
 
 void Texture::Bind(uint32_t slot) const
 {
+    //Bind texture to slot for shader
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
 }
 
 void Texture::Unbind() const
 {
+    //Unbind
     glBindTexture(GL_TEXTURE_2D, 0);
 }
