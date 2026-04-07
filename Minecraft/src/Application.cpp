@@ -189,6 +189,16 @@ void Application::UpdateCameraKeyboard(float deltaTime)
     {
         m_Camera->MoveRight(-moveSpeed);
     }
+
+    if (m_Window->IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+    {
+        m_Camera->MovePosition(glm::vec3(0.0f, -moveSpeed, 0.0f));
+    }
+
+    if (m_Window->IsKeyPressed(GLFW_KEY_SPACE))
+    {
+        m_Camera->MovePosition(glm::vec3(0.0f, moveSpeed, 0.0f));
+    }
 }
 
 void Application::UpdateCameraMouse(float deltaX, float deltaY)
