@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Window.h"
+#include "Chunk.h"
 
 //Forward declarations?
 class VertexArray;
@@ -35,6 +36,10 @@ private:
     void UpdateCameraKeyboard(float deltaTime);
     void UpdateCameraMouse(float deltaX, float deltaY);
 
+    //Chunk Mesh
+    void BuildChunkMesh(const Chunk&);
+
+
 private:
     //Renderer resource ownership
     std::unique_ptr<Window> m_Window;
@@ -53,4 +58,5 @@ private:
     float m_CubeRotation = 0.0f;
     bool m_Running = false;
     double m_LastFrameTime = 0.0;
+    Chunk m_Chunk;
 };

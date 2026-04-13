@@ -8,7 +8,6 @@
 #include "Renderer/VertexBuffer.h"
 #include "Camera/Camera.h"
 #include "mc.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 
 Application& Application::Get()
@@ -66,49 +65,12 @@ void Application::Init()
     //Enable depth test. -> Which object is in front?
     glEnable(GL_DEPTH_TEST);
 
-    const float cubeVertices[] =
-    {
-        //Front face
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
-        //Back face
-        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        //Left face
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        //Right face
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
-        //Top face
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
-        //Bottom face
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f
-    };
+    //Vertices
+    std::vector<float> Vertices;
+    std::vector<uint32_t> Indices;
 
-    const uint32_t cubeIndices[] =
-    {
-        0, 1, 2, 2, 3, 0,       
-        4, 5, 6, 6, 7, 4,       
-        8, 9, 10, 10, 11, 8,    
-        12, 13, 14, 14, 15, 12, 
-        16, 17, 18, 18, 19, 16, 
-        20, 21, 22, 22, 23, 20  
-    };
+
+
 
     //Vertex shader
     const std::string vertexSource = R"(
@@ -142,6 +104,11 @@ void Application::Init()
         }
     )";
 
+    //Add some blocks
+    m_Chunk.SetBlock(0, 0, 0, BlockType::Grass);
+    m_Chunk.SetBlock(1, 0, 0, BlockType::Dirt);
+    m_Chunk.SetBlock(2, 0, 0, BlockType::Stone);
+
     //Create objects
     m_CubeVAO = std::make_unique<VertexArray>();
     m_CubeVBO = std::make_unique<VertexBuffer>(cubeVertices, static_cast<uint32_t>(sizeof(cubeVertices)));
@@ -160,6 +127,14 @@ void Application::Init()
 
     m_CubeShader->Bind();
     m_CubeShader->SetUniform1i("u_Texture", 0);
+
+    auto block = m_Chunk.GetBlock(0, 0, 0);
+    auto block2 = m_Chunk.GetBlock(1, 0, 0);
+    auto block3 = m_Chunk.GetBlock(2, 0, 0);
+
+    MC_CORE_INFO("block: {}", static_cast<int>(block));
+    MC_CORE_INFO("block2: {}", static_cast<int>(block2));
+    MC_CORE_INFO("block3: {}", static_cast<int>(block3));
 
     m_Running = true;
     m_LastFrameTime = glfwGetTime();
@@ -222,8 +197,6 @@ void Application::Shutdown()
 
 void Application::Update(float dt)
 {
-    //Update cube rotation
-    m_CubeRotation += dt * 35.0f;
 
     UpdateCameraKeyboard(dt);
 
@@ -270,8 +243,13 @@ void Application::Render()
     Renderer::Draw(*m_CubeVAO, *m_CubeIBO, *m_CubeShader);
 
     //Move Camera
-    m_Camera->AddYaw(1.0f);
-    m_Camera->AddPitch(0.1f);
+    //m_Camera->AddYaw(1.0f);
+    //->AddPitch(0.1f);
     //m_Camera->MoveForward(0.01f);
     //m_Camera->MoveRight(0.1f);
+}
+
+void BuildChunkMesh(const Chunk&)
+{
+
 }
