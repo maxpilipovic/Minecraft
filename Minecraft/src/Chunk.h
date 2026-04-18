@@ -11,6 +11,17 @@ enum class BlockType : uint8_t
     Stone
 };
 
+//
+enum class BlockFace : uint8_t
+{
+    Top,
+    Bottom,
+    Left,
+    Right,
+    Front,
+    Back
+};
+
 struct Chunk
 {
     static constexpr int Width = 16;

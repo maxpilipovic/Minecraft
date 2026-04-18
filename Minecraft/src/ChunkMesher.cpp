@@ -123,9 +123,9 @@ namespace
 	}
 }
 
-ChunkMesh BuildChunkMesh(const Chunk& chunk)
+ChunkMeshes BuildChunkMesh(const Chunk& chunk)
 {
-	ChunkMesh mesh;
+	ChunkMeshes mesh;
 
 	for (int z{}; z < Chunk::Depth; z++)
 	{
@@ -133,43 +133,79 @@ ChunkMesh BuildChunkMesh(const Chunk& chunk)
 		{
 			for (int x{}; x < Chunk::Width; x++)
 			{
-				if (chunk.GetBlock(x, y, z) == BlockType::Air)
-				{
-					continue;
-				}
 
-				if (IsAirOrOutOfBounds(chunk, x, y, z + 1))
-				{
-					AddFrontFace(mesh, x, y, z);
-				}
+				BlockType Block = chunk.GetBlock(x, y, z);
 
-				if (IsAirOrOutOfBounds(chunk, x, y, z - 1))
+				switch (Block)
 				{
-					AddBackFace(mesh, x, y, z);
-				}
-
-				if (IsAirOrOutOfBounds(chunk, x + 1, y, z))
-				{
-					AddRightFace(mesh, x, y, z);
-				}
-
-				if (IsAirOrOutOfBounds(chunk, x - 1, y, z))
-				{
-					AddLeftFace(mesh, x, y, z);
-				}
-
-				if (IsAirOrOutOfBounds(chunk, x, y + 1, z))
-				{
-					AddTopFace(mesh, x, y, z);
-				}
-
-				if (IsAirOrOutOfBounds(chunk, x, y - 1, z))
-				{
-					AddBottomFace(mesh, x, y, z);
+					case BlockType::Dirt:
+						mesh.Dirt = DirtMesh(mesh.Dirt, chunk, x, y, z);
+						break;
+					case BlockType::Grass:
+						mesh.Grass = GrassMesh(mesh.Grass, chunk, x, y, z);
+						break;
+					case BlockType::Stone:
+						mesh.Stone = StoneMesh(mesh.Stone, chunk, x, y, z);
+						break;
+					case BlockType::Air:
+						//Do nothing
+						break;
 				}
 			}
 		}
 	}
 
 	return mesh;
+}
+
+ChunkMesh GrassMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
+{
+
+	AddFaces(mesh, chunk, x, y, z);
+	return mesh;
+}
+
+ChunkMesh StoneMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
+{
+	AddFaces(mesh, chunk, x, y, z);
+	return mesh;
+}
+
+ChunkMesh DirtMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
+{
+	AddFaces(mesh, chunk, x, y, z);
+	return mesh;
+}
+
+void AddFaces(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
+{
+	if (IsAirOrOutOfBounds(chunk, x, y, z + 1))
+	{
+		AddFrontFace(mesh, x, y, z);
+	}
+
+	if (IsAirOrOutOfBounds(chunk, x, y, z - 1))
+	{
+		AddBackFace(mesh, x, y, z);
+	}
+
+	if (IsAirOrOutOfBounds(chunk, x + 1, y, z))
+	{
+		AddRightFace(mesh, x, y, z);
+	}
+
+	if (IsAirOrOutOfBounds(chunk, x - 1, y, z))
+	{
+		AddLeftFace(mesh, x, y, z);
+	}
+
+	if (IsAirOrOutOfBounds(chunk, x, y + 1, z))
+	{
+		AddTopFace(mesh, x, y, z);
+	}
+
+	if (IsAirOrOutOfBounds(chunk, x, y - 1, z))
+	{
+		AddBottomFace(mesh, x, y, z);
+	}
 }

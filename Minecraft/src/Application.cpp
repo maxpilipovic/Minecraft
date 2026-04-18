@@ -66,12 +66,34 @@ void Application::Init()
     //Enable depth test. -> Which object is in front?
     glEnable(GL_DEPTH_TEST);
 
+
+    //1 Layer Grass
+    //3 Layer Dirt
+    //Remainder Stone
     //Build the blocks!!!
     for (int z{}; z < Chunk::Depth; z++)
     {
         for (int x{}; x < Chunk::Width; x++)
         {
-            m_Chunk.SetBlock(x, 0, z, BlockType::Grass);
+            for (int y{}; y < Chunk::Height; y++)
+            {
+                m_Chunk.SetBlock(x, y, z, BlockType::Grass);
+                if (y == m_Chunk.Height - 1)
+                {
+                    //Render Grass
+                    m_Chunk.SetBlock(x, y, z, BlockType::Grass);
+                }
+                //If height 16
+                //12
+                else if ((y >= m_Chunk.Height - 4))
+                {
+                    m_Chunk.SetBlock(x, y, z, BlockType::Dirt);
+                }
+                else
+                {
+                    m_Chunk.SetBlock(x, y, z, BlockType::Stone);
+                }
+            }
         }
     }
 
@@ -113,8 +135,13 @@ void Application::Init()
     BuildChunkMesher(m_Chunk);
 
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
-    m_CubeTexture = std::make_unique<Texture>("../images/dirt.png");
 
+    //Textures
+    m_CubeTexture = std::make_unique<Texture>("../images/dirt2.png");
+    m_CubeTexture2 = std::make_unique<Texture>("../images/grass3.png");
+    m_CubeTexture3 = std::make_unique<Texture>("../images/stone3.png");
+
+    
     m_CubeShader->Bind();
     m_CubeShader->SetUniform1i("u_Texture", 0);
 
@@ -169,12 +196,29 @@ void Application::UpdateCameraMouse(float deltaX, float deltaY)
 void Application::Shutdown()
 {
     //Tear down GPU resources in reverse ownership order.
+    //Grass
+    m_GrassMesh.IBO.reset();
+    m_GrassMesh.VAO.reset();
+    m_GrassMesh.VBO.reset();
+    //Dirt
+    m_DirtMesh.IBO.reset();
+    m_DirtMesh.VAO.reset();
+    m_DirtMesh.VBO.reset();
+
+    //Stone
+    m_StoneMesh.IBO.reset();
+    m_StoneMesh.VAO.reset();
+    m_StoneMesh.VBO.reset();
+
+    //Rest everything
     m_CubeTexture.reset();
+    m_CubeTexture2.reset();
+    m_CubeTexture3.reset();
+
     m_CubeShader.reset();
-    m_CubeIBO.reset();
-    m_CubeVBO.reset();
-    m_CubeVAO.reset();
+    m_Camera.reset();
     m_Window.reset();
+
 }
 
 void Application::Update(float dt)
@@ -208,7 +252,7 @@ void Application::Render()
     Renderer::Clear();
 
     //Skip drawing chunk geometry until all required scene resources are ready.
-    if (!m_CubeVAO || !m_CubeIBO || !m_CubeShader || !m_CubeTexture || !m_Camera)
+    if (!m_GrassMesh.VAO || !m_GrassMesh.IBO || !m_DirtMesh.VAO || !m_DirtMesh.IBO || !m_StoneMesh.VAO || !m_StoneMesh.IBO || !m_CubeShader || !m_CubeTexture || !m_Camera)
     {
         return;
     }
@@ -221,8 +265,25 @@ void Application::Render()
 
     m_CubeShader->Bind();
     m_CubeShader->SetUniformMat4f("u_MVP", mvp);
-    m_CubeTexture->Bind(0);
-    Renderer::Draw(*m_CubeVAO, *m_CubeIBO, *m_CubeShader);
+
+    //Draw call. 3 SEPERATE!!!
+    if (CheckValid(m_GrassMesh))
+    {
+        m_CubeTexture2->Bind(0);
+        Renderer::Draw(*m_GrassMesh.VAO, *m_GrassMesh.IBO, *m_CubeShader);
+    }
+
+    if (CheckValid(m_DirtMesh))
+    {
+        m_CubeTexture->Bind(0);
+        Renderer::Draw(*m_DirtMesh.VAO, *m_DirtMesh.IBO, *m_CubeShader);
+    }
+
+    if (CheckValid(m_StoneMesh))
+    {
+        m_CubeTexture3->Bind(0);
+        Renderer::Draw(*m_StoneMesh.VAO, *m_StoneMesh.IBO, *m_CubeShader);
+    }
 
     //Move Camera
     //m_Camera->AddYaw(1.0f);
@@ -233,22 +294,35 @@ void Application::Render()
 
 void Application::BuildChunkMesher(const Chunk& chunk)
 {
-    ChunkMesh mesh = ::BuildChunkMesh(chunk);
+    ChunkMeshes mesh = ::BuildChunkMesh(chunk);
 
+    //Dirtmesh
+    //Stonemesh
+    //Grassmesh
+    UploadMesh(mesh.Dirt, m_DirtMesh);
+    UploadMesh(mesh.Grass, m_GrassMesh);
+    UploadMesh(mesh.Stone, m_StoneMesh);
+
+}
+
+void Application::UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu)
+{
+
+    //Check bnefore render.
     if (mesh.Vertices.empty() || mesh.Indices.empty())
     {
-        m_CubeVAO.reset();
-        m_CubeVBO.reset();
-        m_CubeIBO.reset();
+        gpu.VAO.reset();
+        gpu.VBO.reset();
+        gpu.IBO.reset();
         return;
     }
 
-    m_CubeVAO = std::make_unique<VertexArray>();
-    m_CubeVBO = std::make_unique<VertexBuffer>(
+    gpu.VAO = std::make_unique<VertexArray>();
+    gpu.VBO = std::make_unique<VertexBuffer>(
         mesh.Vertices.data(),
         static_cast<uint32_t>(mesh.Vertices.size() * sizeof(ChunkVertex))
     );
-    m_CubeIBO = std::make_unique<IndexBuffer>(
+    gpu.IBO = std::make_unique<IndexBuffer>(
         mesh.Indices.data(),
         static_cast<uint32_t>(mesh.Indices.size())
     );
@@ -256,5 +330,16 @@ void Application::BuildChunkMesher(const Chunk& chunk)
     BufferLayout layout;
     layout.Push<float>(3); // Position
     layout.Push<float>(2); // UV
-    m_CubeVAO->AddBuffer(*m_CubeVBO, layout);
+    gpu.VAO->AddBuffer(*gpu.VBO, layout);
+
+}
+
+bool Application::CheckValid(const RenderMesh& gpu)
+{
+    if (gpu.VAO && gpu.VBO && gpu.IBO)
+    {
+        return true;
+    }
+
+    return false;
 }
