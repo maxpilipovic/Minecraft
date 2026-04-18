@@ -37,7 +37,7 @@ private:
     void UpdateCameraMouse(float deltaX, float deltaY);
 
     //Chunk Mesh
-    void BuildChunkMesh(const Chunk&);
+    void BuildChunkMesher(const Chunk&);
 
 
 private:

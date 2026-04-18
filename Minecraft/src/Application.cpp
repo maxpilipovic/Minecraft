@@ -7,6 +7,7 @@
 #include "Renderer/VertexArray.h"
 #include "Renderer/VertexBuffer.h"
 #include "Camera/Camera.h"
+#include "ChunkMesher.h"
 #include "mc.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -65,12 +66,14 @@ void Application::Init()
     //Enable depth test. -> Which object is in front?
     glEnable(GL_DEPTH_TEST);
 
-    //Vertices
-    std::vector<float> Vertices;
-    std::vector<uint32_t> Indices;
-
-
-
+    //Build the blocks!!!
+    for (int z{}; z < Chunk::Depth; z++)
+    {
+        for (int x{}; x < Chunk::Width; x++)
+        {
+            m_Chunk.SetBlock(x, 0, z, BlockType::Grass);
+        }
+    }
 
     //Vertex shader
     const std::string vertexSource = R"(
@@ -104,23 +107,10 @@ void Application::Init()
         }
     )";
 
-    //Add some blocks
-    m_Chunk.SetBlock(0, 0, 0, BlockType::Grass);
-    m_Chunk.SetBlock(1, 0, 0, BlockType::Dirt);
-    m_Chunk.SetBlock(2, 0, 0, BlockType::Stone);
-
-    //Create objects
-    m_CubeVAO = std::make_unique<VertexArray>();
-    m_CubeVBO = std::make_unique<VertexBuffer>(cubeVertices, static_cast<uint32_t>(sizeof(cubeVertices)));
-    m_CubeIBO = std::make_unique<IndexBuffer>(cubeIndices, static_cast<uint32_t>(std::size(cubeIndices)));
-
     //Create Camera
-    m_Camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 2.5f));
+    m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
 
-    BufferLayout layout;
-    layout.Push<float>(3); // Position
-    layout.Push<float>(2); // UV
-    m_CubeVAO->AddBuffer(*m_CubeVBO, layout);
+    BuildChunkMesher(m_Chunk);
 
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
     m_CubeTexture = std::make_unique<Texture>("../images/dirt.png");
@@ -128,21 +118,13 @@ void Application::Init()
     m_CubeShader->Bind();
     m_CubeShader->SetUniform1i("u_Texture", 0);
 
-    auto block = m_Chunk.GetBlock(0, 0, 0);
-    auto block2 = m_Chunk.GetBlock(1, 0, 0);
-    auto block3 = m_Chunk.GetBlock(2, 0, 0);
-
-    MC_CORE_INFO("block: {}", static_cast<int>(block));
-    MC_CORE_INFO("block2: {}", static_cast<int>(block2));
-    MC_CORE_INFO("block3: {}", static_cast<int>(block3));
-
     m_Running = true;
     m_LastFrameTime = glfwGetTime();
 }
 
 void Application::UpdateCameraKeyboard(float deltaTime)
 {
-    float moveSpeed = 2.5f * deltaTime;
+    float moveSpeed = 5.0f * deltaTime;
     float turnSpeed = 50.0f * deltaTime;
 
     if (m_Window->IsKeyPressed(GLFW_KEY_W))
@@ -222,19 +204,19 @@ void Application::Update(float dt)
 
 void Application::Render()
 {
-    //Skip rendering until all required scene resources are ready.
+    Renderer::SetClearColor(0.53f, 0.81f, 0.92f, 1.0f);
+    Renderer::Clear();
+
+    //Skip drawing chunk geometry until all required scene resources are ready.
     if (!m_CubeVAO || !m_CubeIBO || !m_CubeShader || !m_CubeTexture || !m_Camera)
     {
         return;
     }
 
-    Renderer::SetClearColor(0.53f, 0.81f, 0.92f, 1.0f);
-    Renderer::Clear();
-
     const float aspect = static_cast<float>(m_Window->GetWidth()) / static_cast<float>(m_Window->GetHeight());
     glm::mat4 projection = glm::perspective(glm::radians(70.0f), aspect, 0.1f, 100.0f);
     glm::mat4 view = m_Camera->GetViewMatrix();
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(m_CubeRotation), glm::vec3(0.5f, 1.0f, 0.0f));
+    glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 mvp = projection * view * model;
 
     m_CubeShader->Bind();
@@ -249,7 +231,30 @@ void Application::Render()
     //m_Camera->MoveRight(0.1f);
 }
 
-void BuildChunkMesh(const Chunk&)
+void Application::BuildChunkMesher(const Chunk& chunk)
 {
+    ChunkMesh mesh = ::BuildChunkMesh(chunk);
 
+    if (mesh.Vertices.empty() || mesh.Indices.empty())
+    {
+        m_CubeVAO.reset();
+        m_CubeVBO.reset();
+        m_CubeIBO.reset();
+        return;
+    }
+
+    m_CubeVAO = std::make_unique<VertexArray>();
+    m_CubeVBO = std::make_unique<VertexBuffer>(
+        mesh.Vertices.data(),
+        static_cast<uint32_t>(mesh.Vertices.size() * sizeof(ChunkVertex))
+    );
+    m_CubeIBO = std::make_unique<IndexBuffer>(
+        mesh.Indices.data(),
+        static_cast<uint32_t>(mesh.Indices.size())
+    );
+
+    BufferLayout layout;
+    layout.Push<float>(3); // Position
+    layout.Push<float>(2); // UV
+    m_CubeVAO->AddBuffer(*m_CubeVBO, layout);
 }
