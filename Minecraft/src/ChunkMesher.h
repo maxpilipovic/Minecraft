@@ -5,7 +5,7 @@
 
 struct ChunkMeshes
 {
-	ChunkMesh Grass;
+	ChunkMesh Sand;
 	ChunkMesh Stone;
 	ChunkMesh Dirt;
 };
@@ -13,7 +13,7 @@ struct ChunkMeshes
 ChunkMeshes BuildChunkMesh(const Chunk& chunk);
 
 //Block Type Meshes
-ChunkMesh GrassMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z);
+ChunkMesh SandMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z);
 ChunkMesh StoneMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z);
 ChunkMesh DirtMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z);
 

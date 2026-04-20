@@ -6,12 +6,12 @@
 enum class BlockType : uint8_t
 {
     Air = 0,
-    Grass,
+    Sand,
     Dirt,
     Stone
 };
 
-//
+//Not used
 enum class BlockFace : uint8_t
 {
     Top,

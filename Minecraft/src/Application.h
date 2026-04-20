@@ -4,6 +4,7 @@
 
 #include "Window.h"
 #include "Chunk.h"
+#include "World.h"
 
 //Forward declarations?
 class VertexArray;
@@ -12,6 +13,7 @@ class IndexBuffer;
 class Shader;
 class Texture;
 class Camera;
+class World;
 struct ChunkMesh;
 
 struct RenderMesh
@@ -19,6 +21,15 @@ struct RenderMesh
     std::unique_ptr<VertexArray> VAO;
     std::unique_ptr<VertexBuffer> VBO;
     std::unique_ptr<IndexBuffer> IBO;
+};
+
+//Stores Render Chunk Info
+struct RenderRecord
+{
+    ChunkPos pos;
+    RenderMesh dirt;
+    RenderMesh stone;
+    RenderMesh sand;
 };
 
 class Application
@@ -45,7 +56,7 @@ private:
     void UpdateCameraMouse(float deltaX, float deltaY);
 
     //Chunk Mesh
-    void BuildChunkMesher(const Chunk&);
+    void BuildChunkMesher(ChunkPos pos, const Chunk&);
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);
@@ -60,10 +71,8 @@ private:
     std::unique_ptr<Texture> m_CubeTexture3;
     std::unique_ptr<Camera> m_Camera;
 
-    //GPU data
-    RenderMesh m_DirtMesh;
-    RenderMesh m_GrassMesh;
-    RenderMesh m_StoneMesh;
+    //World
+    std::unique_ptr<World> m_World;
 
     //Mouse stuff
     float m_LastX = 0.0f;
@@ -74,4 +83,7 @@ private:
     bool m_Running = false;
     double m_LastFrameTime = 0.0;
     Chunk m_Chunk;
+
+    //Temporary
+    std::vector<RenderRecord> m_ChunkData;
 };

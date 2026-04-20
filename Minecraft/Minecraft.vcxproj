@@ -111,6 +111,7 @@
     <ClInclude Include="src\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\mc.h" />
+    <ClInclude Include="src\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\glad\src\glad.c" />
@@ -135,6 +136,7 @@
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\stb_image_impl.cpp" />
+    <ClCompile Include="src\World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vendor\glfw\glfw.vcxproj">

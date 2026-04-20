@@ -141,8 +141,8 @@ ChunkMeshes BuildChunkMesh(const Chunk& chunk)
 					case BlockType::Dirt:
 						mesh.Dirt = DirtMesh(mesh.Dirt, chunk, x, y, z);
 						break;
-					case BlockType::Grass:
-						mesh.Grass = GrassMesh(mesh.Grass, chunk, x, y, z);
+					case BlockType::Sand:
+						mesh.Sand = SandMesh(mesh.Sand, chunk, x, y, z);
 						break;
 					case BlockType::Stone:
 						mesh.Stone = StoneMesh(mesh.Stone, chunk, x, y, z);
@@ -158,7 +158,7 @@ ChunkMeshes BuildChunkMesh(const Chunk& chunk)
 	return mesh;
 }
 
-ChunkMesh GrassMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
+ChunkMesh SandMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z)
 {
 
 	AddFaces(mesh, chunk, x, y, z);

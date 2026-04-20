@@ -71,31 +71,6 @@ void Application::Init()
     //3 Layer Dirt
     //Remainder Stone
     //Build the blocks!!!
-    for (int z{}; z < Chunk::Depth; z++)
-    {
-        for (int x{}; x < Chunk::Width; x++)
-        {
-            for (int y{}; y < Chunk::Height; y++)
-            {
-                m_Chunk.SetBlock(x, y, z, BlockType::Grass);
-                if (y == m_Chunk.Height - 1)
-                {
-                    //Render Grass
-                    m_Chunk.SetBlock(x, y, z, BlockType::Grass);
-                }
-                //If height 16
-                //12
-                else if ((y >= m_Chunk.Height - 4))
-                {
-                    m_Chunk.SetBlock(x, y, z, BlockType::Dirt);
-                }
-                else
-                {
-                    m_Chunk.SetBlock(x, y, z, BlockType::Stone);
-                }
-            }
-        }
-    }
 
     //Vertex shader
     const std::string vertexSource = R"(
@@ -129,16 +104,61 @@ void Application::Init()
         }
     )";
 
+    //Make World
+    m_World = std::make_unique<World>();
+
     //Create Camera
     m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
 
-    BuildChunkMesher(m_Chunk);
+    m_World->GenerateChunk({ 0, 0 });
+    Chunk* firstChunk = m_World->GetChunk({ 0, 0 });
+
+    m_World->GenerateChunk({ 1, 0 });
+    Chunk* secondChunk = m_World->GetChunk({ 1,0 });
+
+    m_World->GenerateChunk({ 0, 1});
+    Chunk* thirdChunk = m_World->GetChunk({ 0, 1 });
+
+    m_World->GenerateChunk({ 1, 1 });
+    Chunk* fourthChunk = m_World->GetChunk({ 1, 1 });
+
+    if (firstChunk)
+    {
+        //Build Chunk Mesher
+        {
+            BuildChunkMesher({0, 0}, *firstChunk);
+        }
+    }
+
+    if (secondChunk)
+    {
+        //Build Chunk Mesher
+        {
+            BuildChunkMesher({ 1, 0 }, *secondChunk);
+        }
+    }
+
+    if (thirdChunk)
+    {
+        //Build Chunk Mesher
+        {
+            BuildChunkMesher({ 0, 1 }, *thirdChunk);
+        }
+    }
+
+    if (fourthChunk)
+    {
+        //Build Chunk Mesher
+        {
+            BuildChunkMesher({ 1, 1 }, *fourthChunk);
+        }
+    }
 
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
 
     //Textures
     m_CubeTexture = std::make_unique<Texture>("../images/dirt2.png");
-    m_CubeTexture2 = std::make_unique<Texture>("../images/grass3.png");
+    m_CubeTexture2 = std::make_unique<Texture>("../images/sand.png");
     m_CubeTexture3 = std::make_unique<Texture>("../images/stone3.png");
 
     
@@ -197,18 +217,20 @@ void Application::Shutdown()
 {
     //Tear down GPU resources in reverse ownership order.
     //Grass
-    m_GrassMesh.IBO.reset();
-    m_GrassMesh.VAO.reset();
-    m_GrassMesh.VBO.reset();
-    //Dirt
-    m_DirtMesh.IBO.reset();
-    m_DirtMesh.VAO.reset();
-    m_DirtMesh.VBO.reset();
+    for (RenderRecord& record : m_ChunkData)
+    {
+        record.dirt.IBO.reset();
+        record.dirt.VAO.reset();
+        record.dirt.VBO.reset();
 
-    //Stone
-    m_StoneMesh.IBO.reset();
-    m_StoneMesh.VAO.reset();
-    m_StoneMesh.VBO.reset();
+        record.sand.IBO.reset();
+        record.sand.VAO.reset();
+        record.sand.VBO.reset();
+
+        record.stone.IBO.reset();
+        record.stone.VAO.reset();
+        record.stone.VBO.reset();
+    }
 
     //Rest everything
     m_CubeTexture.reset();
@@ -252,7 +274,7 @@ void Application::Render()
     Renderer::Clear();
 
     //Skip drawing chunk geometry until all required scene resources are ready.
-    if (!m_GrassMesh.VAO || !m_GrassMesh.IBO || !m_DirtMesh.VAO || !m_DirtMesh.IBO || !m_StoneMesh.VAO || !m_StoneMesh.IBO || !m_CubeShader || !m_CubeTexture || !m_Camera)
+    if (!m_Window || !m_CubeShader || !m_CubeTexture || !m_CubeTexture2 || !m_CubeTexture3 || !m_Camera)
     {
         return;
     }
@@ -260,29 +282,40 @@ void Application::Render()
     const float aspect = static_cast<float>(m_Window->GetWidth()) / static_cast<float>(m_Window->GetHeight());
     glm::mat4 projection = glm::perspective(glm::radians(70.0f), aspect, 0.1f, 100.0f);
     glm::mat4 view = m_Camera->GetViewMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 mvp = projection * view * model;
 
     m_CubeShader->Bind();
-    m_CubeShader->SetUniformMat4f("u_MVP", mvp);
 
     //Draw call. 3 SEPERATE!!!
-    if (CheckValid(m_GrassMesh))
+    for (const RenderRecord& record : m_ChunkData)
     {
-        m_CubeTexture2->Bind(0);
-        Renderer::Draw(*m_GrassMesh.VAO, *m_GrassMesh.IBO, *m_CubeShader);
-    }
 
-    if (CheckValid(m_DirtMesh))
-    {
-        m_CubeTexture->Bind(0);
-        Renderer::Draw(*m_DirtMesh.VAO, *m_DirtMesh.IBO, *m_CubeShader);
-    }
+        glm::vec3 chunkOffset(
+            static_cast<float>(record.pos.x * Chunk::Width),
+            0.0f,
+            static_cast<float>(record.pos.z * Chunk::Depth)
+        );
 
-    if (CheckValid(m_StoneMesh))
-    {
-        m_CubeTexture3->Bind(0);
-        Renderer::Draw(*m_StoneMesh.VAO, *m_StoneMesh.IBO, *m_CubeShader);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkOffset);
+        glm::mat4 mvp = projection * view * model;
+        m_CubeShader->SetUniformMat4f("u_MVP", mvp);
+
+        if (CheckValid(record.sand))
+        {
+            m_CubeTexture2->Bind(0);
+            Renderer::Draw(*record.sand.VAO, *record.sand.IBO, *m_CubeShader);
+        }
+
+        if (CheckValid(record.dirt))
+        {
+            m_CubeTexture->Bind(0);
+            Renderer::Draw(*record.dirt.VAO, *record.dirt.IBO, *m_CubeShader);
+        }
+
+        if (CheckValid(record.stone))
+        {
+            m_CubeTexture3->Bind(0);
+            Renderer::Draw(*record.stone.VAO, *record.stone.IBO, *m_CubeShader);
+        }
     }
 
     //Move Camera
@@ -292,17 +325,22 @@ void Application::Render()
     //m_Camera->MoveRight(0.1f);
 }
 
-void Application::BuildChunkMesher(const Chunk& chunk)
+void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk)
 {
     ChunkMeshes mesh = ::BuildChunkMesh(chunk);
+
+    RenderRecord record{};
+    record.pos = pos;
+
 
     //Dirtmesh
     //Stonemesh
     //Grassmesh
-    UploadMesh(mesh.Dirt, m_DirtMesh);
-    UploadMesh(mesh.Grass, m_GrassMesh);
-    UploadMesh(mesh.Stone, m_StoneMesh);
+    UploadMesh(mesh.Dirt, record.dirt);
+    UploadMesh(mesh.Sand, record.sand);
+    UploadMesh(mesh.Stone, record.stone);
 
+    m_ChunkData.push_back(std::move(record));
 }
 
 void Application::UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu)
