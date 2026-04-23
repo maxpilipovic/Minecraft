@@ -24,7 +24,7 @@ public:
 	void GenerateChunk(ChunkPos pos);
 
 	//Get Chunk (pointer because nullptr is valid?)
-	Chunk* GetChunk(ChunkPos chunk);
+	const Chunk* GetChunk(ChunkPos chunk) const;
 
 	//Something to store chunks?? Vec or Hashmap??
 

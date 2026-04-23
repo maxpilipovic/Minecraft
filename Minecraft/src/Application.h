@@ -56,7 +56,7 @@ private:
     void UpdateCameraMouse(float deltaX, float deltaY);
 
     //Chunk Mesh
-    void BuildChunkMesher(ChunkPos pos, const Chunk&);
+    void BuildChunkMesher(ChunkPos pos, const Chunk&, const World& world);
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);

@@ -111,22 +111,22 @@ void Application::Init()
     m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
 
     m_World->GenerateChunk({ 0, 0 });
-    Chunk* firstChunk = m_World->GetChunk({ 0, 0 });
+    const Chunk* firstChunk = m_World->GetChunk({ 0, 0 });
 
     m_World->GenerateChunk({ 1, 0 });
-    Chunk* secondChunk = m_World->GetChunk({ 1,0 });
+    const Chunk* secondChunk = m_World->GetChunk({ 1,0 });
 
     m_World->GenerateChunk({ 0, 1});
-    Chunk* thirdChunk = m_World->GetChunk({ 0, 1 });
+    const Chunk* thirdChunk = m_World->GetChunk({ 0, 1 });
 
     m_World->GenerateChunk({ 1, 1 });
-    Chunk* fourthChunk = m_World->GetChunk({ 1, 1 });
+    const Chunk* fourthChunk = m_World->GetChunk({ 1, 1 });
 
     if (firstChunk)
     {
         //Build Chunk Mesher
         {
-            BuildChunkMesher({0, 0}, *firstChunk);
+            BuildChunkMesher({0, 0}, *firstChunk, *m_World);
         }
     }
 
@@ -134,7 +134,7 @@ void Application::Init()
     {
         //Build Chunk Mesher
         {
-            BuildChunkMesher({ 1, 0 }, *secondChunk);
+            BuildChunkMesher({ 1, 0 }, *secondChunk, *m_World);
         }
     }
 
@@ -142,7 +142,7 @@ void Application::Init()
     {
         //Build Chunk Mesher
         {
-            BuildChunkMesher({ 0, 1 }, *thirdChunk);
+            BuildChunkMesher({ 0, 1 }, *thirdChunk, *m_World);
         }
     }
 
@@ -150,7 +150,7 @@ void Application::Init()
     {
         //Build Chunk Mesher
         {
-            BuildChunkMesher({ 1, 1 }, *fourthChunk);
+            BuildChunkMesher({ 1, 1 }, *fourthChunk, *m_World);
         }
     }
 
@@ -325,9 +325,9 @@ void Application::Render()
     //m_Camera->MoveRight(0.1f);
 }
 
-void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk)
+void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk, const World& world)
 {
-    ChunkMeshes mesh = ::BuildChunkMesh(chunk);
+    ChunkMeshes mesh = ::BuildChunkMesh(chunk, pos, world);
 
     RenderRecord record{};
     record.pos = pos;

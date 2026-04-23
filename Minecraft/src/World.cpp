@@ -86,7 +86,7 @@ void World::GenerateChunk(ChunkPos pos)
     }
 }
 
-Chunk* World::GetChunk(ChunkPos chunk)
+const Chunk* World::GetChunk(ChunkPos chunk) const
 {
 
     //Grabs the chunk
