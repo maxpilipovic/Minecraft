@@ -1,4 +1,34 @@
 #include "World.h"
+#include <algorithm>
+
+namespace
+{
+    constexpr int kTerrainSeed = 1337;
+    constexpr float kTerrainFrequency = 0.035f;
+    constexpr int kTerrainMinHeight = 4;
+    constexpr int kSurfaceDepth = 4;
+
+    int getSurfaceHeight(const FastNoiseLite& noise, int worldX, int worldZ)
+    {
+        const float noiseValue = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
+        const float normalizedNoise = (noiseValue + 1.0f) * 0.5f;
+        const float scaledHeight = normalizedNoise * static_cast<float>(Chunk::Height - 1 - kTerrainMinHeight);
+        const int height = kTerrainMinHeight + static_cast<int>(scaledHeight + 0.5f);
+
+        return std::clamp(height, kTerrainMinHeight, Chunk::Height - 1);
+    }
+}
+
+World::World()
+    : m_TerrainNoise(kTerrainSeed)
+{
+    m_TerrainNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    m_TerrainNoise.SetFrequency(kTerrainFrequency);
+    m_TerrainNoise.SetFractalType(FastNoiseLite::FractalType_FBm);
+    m_TerrainNoise.SetFractalOctaves(4);
+    m_TerrainNoise.SetFractalLacunarity(2.0f);
+    m_TerrainNoise.SetFractalGain(0.5f);
+}
 
 bool ChunkPos::operator==(const ChunkPos& other) const
 {
@@ -33,17 +63,17 @@ void World::GenerateChunk(ChunkPos pos)
     {
         for (int x{}; x < Chunk::Width; x++)
         {
-            for (int y{}; y < Chunk::Height; y++)
+            const int worldX = pos.x * Chunk::Width + x;
+            const int worldZ = pos.z * Chunk::Depth + z;
+            const int surfaceY = getSurfaceHeight(m_TerrainNoise, worldX, worldZ);
+
+            for (int y{}; y <= surfaceY; y++)
             {
-                currChunk.SetBlock(x, y, z, BlockType::Sand);
-                if (y == currChunk.Height - 1)
+                if (y == surfaceY)
                 {
-                    //Render Grass
                     currChunk.SetBlock(x, y, z, BlockType::Sand);
                 }
-                //If height 16
-                //12
-                else if ((y >= currChunk.Height - 4))
+                else if (y >= surfaceY - (kSurfaceDepth - 1))
                 {
                     currChunk.SetBlock(x, y, z, BlockType::Dirt);
                 }
@@ -54,7 +84,6 @@ void World::GenerateChunk(ChunkPos pos)
             }
         }
     }
-
 }
 
 Chunk* World::GetChunk(ChunkPos chunk)

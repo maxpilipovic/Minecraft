@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include "Chunk.h"
+#include <FastNoiseLite.h>
 
 struct ChunkPos
 {
@@ -19,6 +20,7 @@ class World
 {
 public:
 
+	World();
 	void GenerateChunk(ChunkPos pos);
 
 	//Get Chunk (pointer because nullptr is valid?)
@@ -28,5 +30,5 @@ public:
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;
-
+	FastNoiseLite m_TerrainNoise;
 };
