@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include "Chunk.h"
 #include <FastNoiseLite.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include "mc.h"
 
 struct ChunkPos
 {
@@ -26,7 +28,7 @@ public:
 	//Get Chunk (pointer because nullptr is valid?)
 	const Chunk* GetChunk(ChunkPos chunk) const;
 
-	//Something to store chunks?? Vec or Hashmap??
+	static ChunkPos fromWorldPosition(const glm::vec3& camPos);
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;

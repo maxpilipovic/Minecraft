@@ -57,6 +57,7 @@ private:
 
     //Chunk Mesh
     void BuildChunkMesher(ChunkPos pos, const Chunk&, const World& world);
+    void GenerateChunksAroundCamera(ChunkPos cameraPos);
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);
@@ -83,6 +84,9 @@ private:
     bool m_Running = false;
     double m_LastFrameTime = 0.0;
     Chunk m_Chunk;
+
+    //MeshedChunks
+    std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_MeshedChunks;
 
     //Temporary
     std::vector<RenderRecord> m_ChunkData;

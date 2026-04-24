@@ -1,8 +1,10 @@
 #include "World.h"
 #include <algorithm>
+#include <cmath>
 
 namespace
 {
+    constexpr int kRenderDistance = 8;
     constexpr int kTerrainSeed = 1337;
     constexpr float kTerrainFrequency = 0.035f;
     constexpr int kTerrainMinHeight = 4;
@@ -99,4 +101,12 @@ const Chunk* World::GetChunk(ChunkPos chunk) const
     }
 
     return &it->second;
+}
+
+ChunkPos World::fromWorldPosition(const glm::vec3& camPos)
+{
+    int x = static_cast<int>(floor(camPos.x / Chunk::Width));
+    int z = static_cast<int>(floor(camPos.z / Chunk::Depth));
+
+    return { x, z };
 }

@@ -8,6 +8,7 @@
 #include "Renderer/VertexBuffer.h"
 #include "Camera/Camera.h"
 #include "ChunkMesher.h"
+#include "World.h"
 #include "mc.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -110,49 +111,8 @@ void Application::Init()
     //Create Camera
     m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
 
-    m_World->GenerateChunk({ 0, 0 });
-    const Chunk* firstChunk = m_World->GetChunk({ 0, 0 });
-
-    m_World->GenerateChunk({ 1, 0 });
-    const Chunk* secondChunk = m_World->GetChunk({ 1,0 });
-
-    m_World->GenerateChunk({ 0, 1});
-    const Chunk* thirdChunk = m_World->GetChunk({ 0, 1 });
-
-    m_World->GenerateChunk({ 1, 1 });
-    const Chunk* fourthChunk = m_World->GetChunk({ 1, 1 });
-
-    if (firstChunk)
-    {
-        //Build Chunk Mesher
-        {
-            BuildChunkMesher({0, 0}, *firstChunk, *m_World);
-        }
-    }
-
-    if (secondChunk)
-    {
-        //Build Chunk Mesher
-        {
-            BuildChunkMesher({ 1, 0 }, *secondChunk, *m_World);
-        }
-    }
-
-    if (thirdChunk)
-    {
-        //Build Chunk Mesher
-        {
-            BuildChunkMesher({ 0, 1 }, *thirdChunk, *m_World);
-        }
-    }
-
-    if (fourthChunk)
-    {
-        //Build Chunk Mesher
-        {
-            BuildChunkMesher({ 1, 1 }, *fourthChunk, *m_World);
-        }
-    }
+    ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
+    GenerateChunksAroundCamera(cameraChunk);
 
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
 
@@ -265,6 +225,9 @@ void Application::Update(float dt)
     m_LastX = xpos;
     m_LastY = ypos;
 
+    ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
+    GenerateChunksAroundCamera(cameraChunk);
+
     UpdateCameraMouse(deltaX, deltaY);
 }
 
@@ -327,6 +290,7 @@ void Application::Render()
 
 void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk, const World& world)
 {
+
     ChunkMeshes mesh = ::BuildChunkMesh(chunk, pos, world);
 
     RenderRecord record{};
@@ -380,4 +344,38 @@ bool Application::CheckValid(const RenderMesh& gpu)
     }
 
     return false;
+}
+
+void Application::GenerateChunksAroundCamera(ChunkPos cameraChunk)
+{
+    int renderDistance = 8;
+
+    //Renders a square. Probably deeper look at this...
+    for (int z = cameraChunk.z - renderDistance; z <= cameraChunk.z + renderDistance; z++)
+    {
+        for (int x = cameraChunk.x - renderDistance; x <= cameraChunk.x + renderDistance; x++)
+        {
+            ChunkPos pos{ x, z };
+
+            m_World->GenerateChunk(pos);
+
+            if (m_MeshedChunks.contains(pos))
+            {
+                //If contains, dont render
+                continue;
+            }
+
+            //Type shit get chunk
+            const Chunk* currChunk = m_World->GetChunk(pos);
+
+            if (currChunk)
+            {
+                BuildChunkMesher(pos, *currChunk, *m_World);
+
+                //Add it here. I think this can be an unordered_set...
+                auto [it, inserted] = m_MeshedChunks.try_emplace(pos);
+            }
+        }
+    }
+
 }

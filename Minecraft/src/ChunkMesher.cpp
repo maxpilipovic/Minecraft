@@ -56,8 +56,6 @@ namespace
 		}
 
 		return neighborChunk->GetBlock(localX, y, localZ) == BlockType::Air;
-
-
 	}
 
 	void AddFrontFace(ChunkMesh& mesh, int x, int y, int z)
