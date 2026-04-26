@@ -110,3 +110,19 @@ ChunkPos World::fromWorldPosition(const glm::vec3& camPos)
 
     return { x, z };
 }
+
+bool World::HasChunk(ChunkPos chunk) const
+{
+
+    if (m_AllChunks.contains(chunk))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void World::UnloadChunk(ChunkPos chunk)
+{
+    m_AllChunks.erase(chunk);
+}

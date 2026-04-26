@@ -203,6 +203,25 @@ void Application::Shutdown()
 
 }
 
+void Application::UnloadShutDownChunk(ChunkPos pos)
+{
+    int targetX = pos.x;
+    int targetZ = pos.z;
+
+    for (auto it = m_ChunkData.begin(); it != m_ChunkData.end();)
+    {
+        if (it->pos.x == targetX && it->pos.z == targetZ)
+        {
+
+            it = m_ChunkData.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+}
+
 void Application::Update(float dt)
 {
 
@@ -227,6 +246,7 @@ void Application::Update(float dt)
 
     ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
     GenerateChunksAroundCamera(cameraChunk);
+    UnloadChunskAroundCamera(cameraChunk);
 
     UpdateCameraMouse(deltaX, deltaY);
 }
@@ -348,7 +368,7 @@ bool Application::CheckValid(const RenderMesh& gpu)
 
 void Application::GenerateChunksAroundCamera(ChunkPos cameraChunk)
 {
-    int renderDistance = 8;
+    int renderDistance = World::RenderDistance;
 
     //Renders a square. Probably deeper look at this...
     for (int z = cameraChunk.z - renderDistance; z <= cameraChunk.z + renderDistance; z++)
@@ -373,9 +393,31 @@ void Application::GenerateChunksAroundCamera(ChunkPos cameraChunk)
                 BuildChunkMesher(pos, *currChunk, *m_World);
 
                 //Add it here. I think this can be an unordered_set...
-                auto [it, inserted] = m_MeshedChunks.try_emplace(pos);
+                m_MeshedChunks.insert(pos);
             }
         }
     }
+}
 
+void Application::UnloadChunskAroundCamera(ChunkPos cameraChunk)
+{
+    int renderDistance = World::RenderDistance;
+
+    for (auto it = m_MeshedChunks.begin(); it != m_MeshedChunks.end();)
+    {
+        const ChunkPos& pos = *it;
+
+        //Check the distance.
+        if (abs(pos.x - cameraChunk.x) > renderDistance || abs(pos.z - cameraChunk.z) > renderDistance)
+        {
+            //START UNLOADING EVERYTHING
+            m_World->UnloadChunk(pos);
+            UnloadShutDownChunk(pos);
+            it = m_MeshedChunks.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
 }

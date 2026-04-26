@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-
+#include <unordered_set>
 #include "Window.h"
 #include "Chunk.h"
 #include "World.h"
@@ -48,6 +48,7 @@ private:
 
     void Init();
     void Shutdown();
+    void UnloadShutDownChunk(ChunkPos pos);
     void Update(float dt);
     void Render();
 
@@ -58,6 +59,7 @@ private:
     //Chunk Mesh
     void BuildChunkMesher(ChunkPos pos, const Chunk&, const World& world);
     void GenerateChunksAroundCamera(ChunkPos cameraPos);
+    void UnloadChunskAroundCamera(ChunkPos cameraPos);
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);
@@ -86,8 +88,8 @@ private:
     Chunk m_Chunk;
 
     //MeshedChunks
-    std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_MeshedChunks;
+    std::unordered_set<ChunkPos, ChunkPosHash> m_MeshedChunks;
 
-    //Temporary
+    //This holds GPU pipeline data.
     std::vector<RenderRecord> m_ChunkData;
 };

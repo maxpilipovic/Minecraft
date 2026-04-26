@@ -22,6 +22,9 @@ class World
 {
 public:
 
+	//Global RenderDistance
+	static constexpr int RenderDistance = 2;
+
 	World();
 	void GenerateChunk(ChunkPos pos);
 
@@ -29,6 +32,9 @@ public:
 	const Chunk* GetChunk(ChunkPos chunk) const;
 
 	static ChunkPos fromWorldPosition(const glm::vec3& camPos);
+	
+	bool HasChunk(ChunkPos chunk) const;
+	void UnloadChunk(ChunkPos chunk);
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;
