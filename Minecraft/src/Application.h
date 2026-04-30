@@ -27,6 +27,7 @@ struct RenderMesh
 struct RenderRecord
 {
     ChunkPos pos;
+    RenderMesh grass;
     RenderMesh dirt;
     RenderMesh stone;
     RenderMesh sand;
@@ -72,6 +73,7 @@ private:
     std::unique_ptr<Texture> m_CubeTexture;
     std::unique_ptr<Texture> m_CubeTexture2;
     std::unique_ptr<Texture> m_CubeTexture3;
+    std::unique_ptr<Texture> m_CubeTexture4;
     std::unique_ptr<Camera> m_Camera;
 
     //World

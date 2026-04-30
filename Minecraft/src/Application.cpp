@@ -120,6 +120,7 @@ void Application::Init()
     m_CubeTexture = std::make_unique<Texture>("../images/dirt2.png");
     m_CubeTexture2 = std::make_unique<Texture>("../images/sand.png");
     m_CubeTexture3 = std::make_unique<Texture>("../images/stone3.png");
+    m_CubeTexture4 = std::make_unique<Texture>("../images/grass4.png");
 
     
     m_CubeShader->Bind();
@@ -179,6 +180,10 @@ void Application::Shutdown()
     //Grass
     for (RenderRecord& record : m_ChunkData)
     {
+        record.grass.IBO.reset();
+        record.grass.VAO.reset();
+        record.grass.VBO.reset();
+
         record.dirt.IBO.reset();
         record.dirt.VAO.reset();
         record.dirt.VBO.reset();
@@ -196,6 +201,7 @@ void Application::Shutdown()
     m_CubeTexture.reset();
     m_CubeTexture2.reset();
     m_CubeTexture3.reset();
+    m_CubeTexture4.reset();
 
     m_CubeShader.reset();
     m_Camera.reset();
@@ -257,13 +263,13 @@ void Application::Render()
     Renderer::Clear();
 
     //Skip drawing chunk geometry until all required scene resources are ready.
-    if (!m_Window || !m_CubeShader || !m_CubeTexture || !m_CubeTexture2 || !m_CubeTexture3 || !m_Camera)
+    if (!m_Window || !m_CubeShader || !m_CubeTexture || !m_CubeTexture2 || !m_CubeTexture3 || !m_CubeTexture4 || !m_Camera)
     {
         return;
     }
 
     const float aspect = static_cast<float>(m_Window->GetWidth()) / static_cast<float>(m_Window->GetHeight());
-    glm::mat4 projection = glm::perspective(glm::radians(70.0f), aspect, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(70.0f), aspect, 0.1f, 100.0f); //Increase from 100 for farPlane. View distance dos not match chunk being rendered
     glm::mat4 view = m_Camera->GetViewMatrix();
 
     m_CubeShader->Bind();
@@ -299,6 +305,12 @@ void Application::Render()
             m_CubeTexture3->Bind(0);
             Renderer::Draw(*record.stone.VAO, *record.stone.IBO, *m_CubeShader);
         }
+
+        if (CheckValid(record.grass))
+        {
+            m_CubeTexture4->Bind(0);
+            Renderer::Draw(*record.grass.VAO, *record.grass.IBO, *m_CubeShader);
+        }
     }
 
     //Move Camera
@@ -323,6 +335,7 @@ void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk, const World
     UploadMesh(mesh.Dirt, record.dirt);
     UploadMesh(mesh.Sand, record.sand);
     UploadMesh(mesh.Stone, record.stone);
+    UploadMesh(mesh.Grass, record.grass);
 
     m_ChunkData.push_back(std::move(record));
 }

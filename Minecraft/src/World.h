@@ -23,7 +23,7 @@ class World
 public:
 
 	//Global RenderDistance
-	static constexpr int RenderDistance = 2;
+	static constexpr int RenderDistance = 8;
 
 	World();
 	void GenerateChunk(ChunkPos pos);
@@ -38,5 +38,7 @@ public:
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;
-	FastNoiseLite m_TerrainNoise;
+	FastNoiseLite m_BaseHeightNoise;
+	FastNoiseLite m_MountainNoise;
+	FastNoiseLite m_BiomeNoise;
 };

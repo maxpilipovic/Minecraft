@@ -8,7 +8,8 @@ enum class BlockType : uint8_t
     Air = 0,
     Sand,
     Dirt,
-    Stone
+    Stone,
+    Grass
 };
 
 //Not used
@@ -25,7 +26,7 @@ enum class BlockFace : uint8_t
 struct Chunk
 {
     static constexpr int Width = 16;
-    static constexpr int Height = 16;
+    static constexpr int Height = 64;
     static constexpr int Depth = 16;
     static constexpr int BlockCount = Width * Height * Depth;
 

@@ -5,31 +5,53 @@
 namespace
 {
     constexpr int kRenderDistance = 8;
-    constexpr int kTerrainSeed = 1337;
-    constexpr float kTerrainFrequency = 0.035f;
-    constexpr int kTerrainMinHeight = 4;
-    constexpr int kSurfaceDepth = 4;
 
-    int getSurfaceHeight(const FastNoiseLite& noise, int worldX, int worldZ)
+    constexpr int kBaseHeightNoise = 1337;
+    constexpr int kMountainNoise = 2001;
+    constexpr int kBiomeNoise = 9001;
+
+    constexpr int kDirtDepth = 4;
+
+    constexpr float kBaseHeightTerrainFrequency = 0.035f;
+    constexpr float kMountainTerrainFrequency = 0.06f;
+    constexpr float kBiomeTerrainFrequency = 0.025f; //0.01f Made higher for testing
+
+    int getSurfaceHeight(const FastNoiseLite& baseNoise, const FastNoiseLite& mountainNoise, const FastNoiseLite& biomeNoise, int worldX, int worldZ)
     {
-        const float noiseValue = noise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
-        const float normalizedNoise = (noiseValue + 1.0f) * 0.5f;
-        const float scaledHeight = normalizedNoise * static_cast<float>(Chunk::Height - 1 - kTerrainMinHeight);
-        const int height = kTerrainMinHeight + static_cast<int>(scaledHeight + 0.5f);
+        float base = baseNoise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
+        base = (base + 1.0f) * 0.5f;
 
-        return std::clamp(height, kTerrainMinHeight, Chunk::Height - 1);
+        float mountain = mountainNoise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
+        mountain = (mountain + 1.0f) * 0.5f;
+
+        float biome = biomeNoise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
+        biome = (biome + 1.0f) * 0.5f;
+
+        float plainsHeight = 8.0f + base * 5.0f;
+        float mountainHeight = 18.0f + mountain * 32.0f;
+
+        //Biome near 0 = flat/plains, biome near 1 = mountains
+        float height = plainsHeight * (1.0f - biome) + mountainHeight * biome;
+
+        return std::clamp((int)(height + 0.5f), 1, Chunk::Height - 1);
     }
 }
 
 World::World()
-    : m_TerrainNoise(kTerrainSeed)
+    : m_BaseHeightNoise(kBaseHeightNoise), m_MountainNoise(kMountainNoise), m_BiomeNoise(kBiomeNoise)
 {
-    m_TerrainNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-    m_TerrainNoise.SetFrequency(kTerrainFrequency);
-    m_TerrainNoise.SetFractalType(FastNoiseLite::FractalType_FBm);
-    m_TerrainNoise.SetFractalOctaves(4);
-    m_TerrainNoise.SetFractalLacunarity(2.0f);
-    m_TerrainNoise.SetFractalGain(0.5f);
+    m_BaseHeightNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    m_BaseHeightNoise.SetFrequency(kBaseHeightTerrainFrequency);
+    m_BaseHeightNoise.SetFractalType(FastNoiseLite::FractalType_FBm);
+    m_BaseHeightNoise.SetFractalOctaves(3);
+
+    m_MountainNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    m_MountainNoise.SetFrequency(kMountainTerrainFrequency);
+    m_MountainNoise.SetFractalType(FastNoiseLite::FractalType_Ridged);
+    m_MountainNoise.SetFractalOctaves(4);
+
+    m_BiomeNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    m_BiomeNoise.SetFrequency(kBiomeTerrainFrequency);
 }
 
 bool ChunkPos::operator==(const ChunkPos& other) const
@@ -67,15 +89,15 @@ void World::GenerateChunk(ChunkPos pos)
         {
             const int worldX = pos.x * Chunk::Width + x;
             const int worldZ = pos.z * Chunk::Depth + z;
-            const int surfaceY = getSurfaceHeight(m_TerrainNoise, worldX, worldZ);
+            const int surfaceY = getSurfaceHeight(m_BaseHeightNoise, m_MountainNoise, m_BiomeNoise, worldX, worldZ);
 
             for (int y{}; y <= surfaceY; y++)
             {
                 if (y == surfaceY)
                 {
-                    currChunk.SetBlock(x, y, z, BlockType::Sand);
+                    currChunk.SetBlock(x, y, z, BlockType::Grass);
                 }
-                else if (y >= surfaceY - (kSurfaceDepth - 1))
+                else if (y >= surfaceY - (kDirtDepth - 1))
                 {
                     currChunk.SetBlock(x, y, z, BlockType::Dirt);
                 }
