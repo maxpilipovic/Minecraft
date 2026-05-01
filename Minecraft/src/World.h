@@ -5,6 +5,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "mc.h"
 
+enum class BiomeType
+{
+	Plains, 
+	Desert,
+	Mountains
+};
+
 struct ChunkPos
 {
 	int x;
@@ -35,6 +42,10 @@ public:
 	
 	bool HasChunk(ChunkPos chunk) const;
 	void UnloadChunk(ChunkPos chunk);
+
+	//Biomes
+	BiomeType getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ);
+	BlockType getSurfaceBlock(BiomeType biome);
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;
