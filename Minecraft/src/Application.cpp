@@ -111,6 +111,8 @@ void Application::Init()
     //Create Camera
     m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
 
+    //Make thread worker
+
     ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
     GenerateChunksAroundCamera(cameraChunk);
 

@@ -43,9 +43,12 @@ public:
 	bool HasChunk(ChunkPos chunk) const;
 	void UnloadChunk(ChunkPos chunk);
 
+	void AddChunk(ChunkPos pos, Chunk chunk);
+	Chunk CreateChunk(ChunkPos pos) const;
+
 	//Biomes
-	BiomeType getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ);
-	BlockType getSurfaceBlock(BiomeType biome);
+	BiomeType getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ) const;
+	BlockType getSurfaceBlock(BiomeType biome) const;
 
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;

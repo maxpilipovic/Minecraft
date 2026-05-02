@@ -6,6 +6,11 @@
 #include "Chunk.h"
 #include "World.h"
 
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <atomic>
+
 //Forward declarations?
 class VertexArray;
 class VertexBuffer;
@@ -15,6 +20,12 @@ class Texture;
 class Camera;
 class World;
 struct ChunkMesh;
+
+struct FinishedChunk
+{
+    ChunkPos pos;
+    Chunk chunk;
+};
 
 struct RenderMesh
 {
@@ -94,4 +105,14 @@ private:
 
     //This holds GPU pipeline data.
     std::vector<RenderRecord> m_ChunkData;
+
+    //THREAD SHIT
+    std::thread m_ChunkWorker;
+    std::mutex m_ChunkMutex;
+
+    std::queue<ChunkPos> m_ChunkJob;
+    std::queue<FinishedChunk> m_FinishedChunk;
+
+    std::unordered_set<ChunkPos, ChunkPosHash> m_RequestedChunk;
+    std::atomic<bool> m_StopChunkWorker = false;
 };

@@ -84,6 +84,7 @@ void World::GenerateChunk(ChunkPos pos)
 {
 
     //iterators returns key, value pair
+    //Inputing
     auto [it, inserted] = m_AllChunks.try_emplace(pos);
 
     //If false
@@ -167,7 +168,7 @@ void World::UnloadChunk(ChunkPos chunk)
     m_AllChunks.erase(chunk);
 }
 
-BiomeType World::getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ)
+BiomeType World::getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ) const
 {
     float value = biomeNoise.GetNoise(static_cast<float>(worldX), static_cast<float>(worldZ));
     value = (value + 1.0f) * 0.5f;
@@ -184,7 +185,7 @@ BiomeType World::getBiome(const FastNoiseLite& biomeNoise, int worldX, int world
     return BiomeType::Plains;
 }
 
-BlockType World::getSurfaceBlock(BiomeType biome)
+BlockType World::getSurfaceBlock(BiomeType biome) const
 {
     switch (biome)
     {
@@ -195,5 +196,51 @@ BlockType World::getSurfaceBlock(BiomeType biome)
     case BiomeType::Plains:
     default:
         return BlockType::Grass;
+    }
+}
+
+//FIX Chunk is to big for stack
+void World::AddChunk(ChunkPos pos, Chunk chunk)
+{
+    m_AllChunks.emplace(pos, std::move(chunk));
+}
+
+//FIX Chunk is to big for stack
+Chunk World::CreateChunk(ChunkPos pos) const
+{
+
+    Chunk chunk;
+
+    //Generate TERRAIN GENERATION!!
+    for (int z{}; z < Chunk::Depth; z++)
+    {
+        for (int x{}; x < Chunk::Width; x++)
+        {
+            const int worldX = pos.x * Chunk::Width + x;
+            const int worldZ = pos.z * Chunk::Depth + z;
+
+            BiomeType biome = getBiome(m_BiomeNoise, worldX, worldZ);
+            BlockType surfaceBlock = getSurfaceBlock(biome);
+
+            const int surfaceY = getSurfaceHeight(m_BaseHeightNoise, m_MountainNoise, m_BiomeNoise, biome, worldX, worldZ);
+
+            for (int y{}; y <= surfaceY; y++)
+            {
+                if (y == surfaceY)
+                {
+                    chunk.SetBlock(x, y, z, surfaceBlock);
+                }
+                else if (y >= surfaceY - (kDirtDepth - 1))
+                {
+                    chunk.SetBlock(x, y, z, biome == BiomeType::Desert ? BlockType::Sand : BlockType::Dirt);
+                }
+                else
+                {
+                    chunk.SetBlock(x, y, z, BlockType::Stone);
+                }
+            }
+        }
+
+        return chunk;
     }
 }
