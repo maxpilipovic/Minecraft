@@ -108,10 +108,38 @@ void Application::Init()
     //Make World
     m_World = std::make_unique<World>();
 
+    //Make thread worker
+    m_ChunkWorker = std::thread([this]()
+        {
+            while (!m_StopChunkWorker)
+            {
+                ChunkPos pos{};
+
+                {
+                    std::unique_lock lock(m_ChunkMutex);
+                    m_ChunkCondition.wait(lock, [this]()
+                        {
+                            return m_StopChunkWorker || !m_ChunkJob.empty();
+                        });
+
+                    if (m_StopChunkWorker)
+                        break;
+
+                    pos = m_ChunkJob.front();
+                    m_ChunkJob.pop();
+                }
+
+                Chunk chunk = m_World->CreateChunk(pos);
+
+                {
+                    std::lock_guard lock(m_ChunkMutex);
+                    m_FinishedChunk.push({ pos, std::move(chunk) });
+                }
+            }
+        });
+
     //Create Camera
     m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
-
-    //Make thread worker
 
     ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
     GenerateChunksAroundCamera(cameraChunk);
@@ -178,6 +206,18 @@ void Application::UpdateCameraMouse(float deltaX, float deltaY)
 
 void Application::Shutdown()
 {
+    //Set the stop chunk worker.
+    m_StopChunkWorker = true;
+
+    //Notify a change. So it does not sleep
+    m_ChunkCondition.notify_all();
+
+
+    if (m_ChunkWorker.joinable())
+    {
+        m_ChunkWorker.join();
+    }
+
     //Tear down GPU resources in reverse ownership order.
     //Grass
     for (RenderRecord& record : m_ChunkData)
@@ -254,6 +294,49 @@ void Application::Update(float dt)
 
     ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
     GenerateChunksAroundCamera(cameraChunk);
+
+    constexpr int maxChunkUploadsPerFrame = 2;
+    int uploadedThisFrame = 0;
+
+    while (uploadedThisFrame < maxChunkUploadsPerFrame)
+    {
+        FinishedChunk finished;
+
+        {
+            std::lock_guard lock(m_ChunkMutex);
+
+            if (m_FinishedChunk.empty())
+            {
+                break;
+            }
+
+            finished = std::move(m_FinishedChunk.front());
+            m_FinishedChunk.pop();
+        }
+
+        if (m_MeshedChunks.contains(finished.pos))
+        {
+            continue;
+        }
+
+        //Check if finished chunk is out of render distance
+        if (abs(finished.pos.x - cameraChunk.x) > World::RenderDistance || abs(finished.pos.z - cameraChunk.z) > World::RenderDistance)
+        {
+            m_RequestedChunk.erase(finished.pos);
+            continue;
+        }
+
+        m_World->AddChunk(finished.pos, std::move(finished.chunk));
+
+        const Chunk* chunk = m_World->GetChunk(finished.pos);
+        if (chunk)
+        {
+            BuildChunkMesher(finished.pos, *chunk, *m_World);
+            m_MeshedChunks.insert(finished.pos);
+            uploadedThisFrame++;
+        }
+    }
+
     UnloadChunskAroundCamera(cameraChunk);
 
     UpdateCameraMouse(deltaX, deltaY);
@@ -392,24 +475,21 @@ void Application::GenerateChunksAroundCamera(ChunkPos cameraChunk)
         {
             ChunkPos pos{ x, z };
 
-            m_World->GenerateChunk(pos);
-
-            if (m_MeshedChunks.contains(pos))
+            //Check Duplicate
+            if (m_World->HasChunk(pos) || m_RequestedChunk.contains(pos))
             {
-                //If contains, dont render
                 continue;
             }
 
-            //Type shit get chunk
-            const Chunk* currChunk = m_World->GetChunk(pos);
-
-            if (currChunk)
+            //Lock and unlock out of scope
             {
-                BuildChunkMesher(pos, *currChunk, *m_World);
-
-                //Add it here. I think this can be an unordered_set...
-                m_MeshedChunks.insert(pos);
+                std::lock_guard lock(m_ChunkMutex);
+                m_ChunkJob.push(pos);
             }
+
+            //Insert requested chunk
+            m_RequestedChunk.insert(pos);
+            m_ChunkCondition.notify_one();
         }
     }
 }
@@ -428,6 +508,7 @@ void Application::UnloadChunskAroundCamera(ChunkPos cameraChunk)
             //START UNLOADING EVERYTHING
             m_World->UnloadChunk(pos);
             UnloadShutDownChunk(pos);
+            m_RequestedChunk.erase(pos);
             it = m_MeshedChunks.erase(it);
         }
         else

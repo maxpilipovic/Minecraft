@@ -10,6 +10,7 @@
 #include <queue>
 #include <thread>
 #include <atomic>
+#include <condition_variable>
 
 //Forward declarations?
 class VertexArray;
@@ -115,4 +116,5 @@ private:
 
     std::unordered_set<ChunkPos, ChunkPosHash> m_RequestedChunk;
     std::atomic<bool> m_StopChunkWorker = false;
+    std::condition_variable m_ChunkCondition;
 };

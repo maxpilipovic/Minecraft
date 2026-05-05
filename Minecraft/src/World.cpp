@@ -12,8 +12,8 @@ namespace
 
     constexpr int kDirtDepth = 4;
 
-    constexpr float kBaseHeightTerrainFrequency = 0.035f;
-    constexpr float kMountainTerrainFrequency = 0.06f;
+    constexpr float kBaseHeightTerrainFrequency = 0.018f;
+    constexpr float kMountainTerrainFrequency = 0.025f;
     constexpr float kBiomeTerrainFrequency = 0.012f;
 
     constexpr float kDesertBiomeThreshold = 0.38f;
@@ -32,19 +32,16 @@ namespace
         switch (biome)
         {
             case BiomeType::Desert:
-                height = 14.0f + base * 4.0f; //height 16 - 23 blocks
+                height = 14.0f + base * 2.0f;
                 break;
             case BiomeType::Mountains:
-                height = 22.0f + mountain * 34.0f; //height 14 - 18 blocks
+                height = 18.0f + mountain * 8.0f;
                 break;
             case BiomeType::Plains:
             default:
-                height = 16.0f + base * 7.0f; //height 22 - 56 blocks
+                height = 15.0f + base * 3.0f;
                 break;
         }
-
-        float plainsHeight = 8.0f + base * 5.0f;
-        float mountainHeight = 18.0f + mountain * 32.0f;
 
         return std::clamp((int)(height + 0.5f), 1, Chunk::Height - 1);
     }
@@ -240,7 +237,7 @@ Chunk World::CreateChunk(ChunkPos pos) const
                 }
             }
         }
-
-        return chunk;
     }
+
+    return chunk;
 }
