@@ -33,7 +33,6 @@ public:
 	static constexpr int RenderDistance = 8;
 
 	World();
-	void GenerateChunk(ChunkPos pos);
 
 	//Get Chunk (pointer because nullptr is valid?)
 	const Chunk* GetChunk(ChunkPos chunk) const;
@@ -55,4 +54,8 @@ private:
 	FastNoiseLite m_BaseHeightNoise;
 	FastNoiseLite m_MountainNoise;
 	FastNoiseLite m_BiomeNoise;
+	FastNoiseLite m_ContinentalnessNoise;
+	FastNoiseLite m_ErosionNoise;
+	FastNoiseLite m_RidgeNoise;
+	FastNoiseLite m_DetailNoise;
 };
