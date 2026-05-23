@@ -278,3 +278,60 @@ Chunk World::CreateChunk(ChunkPos pos) const
 
     return chunk;
 }
+
+BlockType World::GetBlockWorld(int worldX, int worldY, int worldZ) const
+{
+
+    //Check outside y bounds
+    if (worldY < 0 || worldY >= Chunk::Height)
+    {
+        return BlockType::Air;
+	}
+
+    //Grab chunk position
+    ChunkPos chunkPos = fromWorldPosition({ static_cast<float>(worldX), 0.0f, static_cast<float>(worldZ) });
+
+    //Retrieve it
+    const Chunk* chunk = GetChunk(chunkPos);
+
+    //If its air
+    if (chunk == nullptr)
+    {
+        return BlockType::Air;
+    }
+
+    //If its a solid block, get its local position and return it
+    int localX = worldX - chunkPos.x * Chunk::Width;
+    int localZ = worldZ - chunkPos.z * Chunk::Depth;
+
+    return chunk->GetBlock(localX, worldY, localZ);
+}
+
+bool World::SetBlockWorld(int worldX, int worldY, int worldZ, BlockType block)
+{
+
+    //Check outside y bounds
+    if (worldY < 0 || worldY >= Chunk::Height)
+    {
+        return false;
+    }
+
+    //Grab chunk position
+    ChunkPos chunkPos = fromWorldPosition({ static_cast<float>(worldX), 0.0f, static_cast<float>(worldZ) });
+
+    //Find the chunk
+    auto it = m_AllChunks.find(chunkPos);
+    if (it == m_AllChunks.end())
+    {
+        return false;
+    }
+
+	//If its a solid block, get its local position and set it
+    int localX = worldX - chunkPos.x * Chunk::Width;
+    int localZ = worldZ - chunkPos.z * Chunk::Depth;
+
+    //Set it!!!
+    it->second.SetBlock(localX, worldY, localZ, block);
+
+    return true;
+}

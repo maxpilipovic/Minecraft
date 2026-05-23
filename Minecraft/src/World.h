@@ -49,6 +49,11 @@ public:
 	BiomeType getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ) const;
 	BlockType getSurfaceBlock(BiomeType biome) const;
 
+	//Breaking/Placing
+	BlockType GetBlockWorld(int worldX, int worldY, int worldZ) const;
+	bool SetBlockWorld(int worldX, int worldY, int worldZ, BlockType block);
+
+
 private:
 	std::unordered_map<ChunkPos, Chunk, ChunkPosHash> m_AllChunks;
 	FastNoiseLite m_BaseHeightNoise;

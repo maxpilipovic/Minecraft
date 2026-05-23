@@ -196,6 +196,86 @@ void Application::UpdateCameraKeyboard(float deltaTime)
     }
 }
 
+void Application::UpdateBlockInteraction()
+{
+    //BREAK BLOCK!!!
+    if (m_Window->IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+    {
+        //Break block
+    }
+
+    //PLACE BLOCK!!!
+    if (m_Window->IsMouseButtonClicked(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        glm::vec3 currentChunk = m_Camera->GetPosition();
+
+        //3 block distance
+        auto hit = RaycastBlock(*m_World, currentChunk, getFront(), 3.0f);
+
+        if (hit)
+        {
+            if (m_World->SetBlockWorld(hit->previousPos.x, hit->previousPos.y, hit->previousPos.z, BlockType::Stone))
+            {
+                //Remesh the edited chunk
+                ChunkPos rayChunk = World::fromWorldPosition(glm::vec3(hit->previousPos.x, hit->previousPos.y, hit->previousPos.z));
+
+                //REMESH!!!
+                RebuildChunkMesher(rayChunk);
+
+                //Log
+                MC_CORE_INFO("RIGHT CLICK PRESSED");
+
+            }
+        }
+    }
+}
+
+std::optional<BlockHit> Application::RaycastBlock(const World& world, const glm::vec3& start, const glm::vec3& direction, float maxDistance)
+{
+    //1.0f is size of one block. 0.1f is 1/10th checks. Good for diagonals
+    constexpr float stepSize = 0.1f;
+
+    glm::ivec3 previousBlock
+    {
+        static_cast<int>(std::floor(start.x)),
+        static_cast<int>(std::floor(start.y)),
+        static_cast<int>(std::floor(start.z))
+    };
+
+    for (float distance = 0.0f; distance <= maxDistance; distance += stepSize)
+    {
+        glm::vec3 point = start + direction * distance;
+
+        glm::ivec3 blockPos
+        {
+            static_cast<int>(std::floor(point.x)),
+            static_cast<int>(std::floor(point.y)),
+            static_cast<int>(std::floor(point.z))
+        };
+
+        if (previousBlock == blockPos)
+        {
+            //skip
+            continue;
+        }
+
+        BlockType Block = world.GetBlockWorld(blockPos.x, blockPos.y, blockPos.z);
+
+        if (Block != BlockType::Air)
+        {
+            return BlockHit
+            {
+                blockPos,
+                previousBlock
+            };
+        }
+
+        previousBlock = blockPos;
+    }
+
+    return std::nullopt;
+}
+
 void Application::UpdateCameraMouse(float deltaX, float deltaY)
 {
     float sensitivity = 0.1f;
@@ -273,7 +353,11 @@ void Application::UnloadShutDownChunk(ChunkPos pos)
 void Application::Update(float dt)
 {
 
+    //Update Keyboard
     UpdateCameraKeyboard(dt);
+
+    //Update Mouse
+    UpdateBlockInteraction();
 
     double xpos, ypos;
 
@@ -425,6 +509,19 @@ void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk, const World
     m_ChunkData.push_back(std::move(record));
 }
 
+void Application::RebuildChunkMesher(ChunkPos pos)
+{
+    UnloadShutDownChunk(pos);
+
+    const Chunk* chunk = m_World->GetChunk(pos);
+
+    if (chunk)
+    {
+        BuildChunkMesher(pos, *chunk, *m_World);
+    }
+
+}
+
 void Application::UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu)
 {
 
@@ -516,4 +613,9 @@ void Application::UnloadChunskAroundCamera(ChunkPos cameraChunk)
             it++;
         }
     }
+}
+
+glm::vec3 Application::getFront() const
+{
+    return m_Camera->getFront();
 }

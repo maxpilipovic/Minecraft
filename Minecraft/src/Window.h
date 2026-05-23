@@ -8,7 +8,7 @@ public:
     Window(int width, int height, const std::string& title);
     ~Window();
 
-    void PollEvents() const;
+    void PollEvents();
     void SwapBuffers() const;
 
     bool ShouldClose() const;
@@ -23,7 +23,17 @@ public:
     bool IsKeyPressed(int key) const;
     void GetMousePosition(double& x, double& y) const;
 
+    //Mouse stuff
+    bool IsMouseButtonPressed(int button) const;
+    bool IsMouseButtonClicked(int button) const;
+
     GLFWwindow* GetNative() const { return m_Window; }
+
+    bool getPreviousRightMouse() const;
+    bool getCurrentRightMouse() const;
+
+    void setPreviousRightMouse(bool pressed);
+    void setCurrentRightMouse(bool pressed);
 
 private:
     void Init();
@@ -38,6 +48,10 @@ private:
     //Mouse Position
     double x;
     double y;
+
+    //Mouse Clicks
+    bool m_PreviousRightMouse = false;
+    bool m_CurrentRightMouse = false;
 
     bool m_VSync = true;
 };

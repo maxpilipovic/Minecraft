@@ -35,6 +35,12 @@ struct RenderMesh
     std::unique_ptr<IndexBuffer> IBO;
 };
 
+struct BlockHit
+{
+    glm::ivec3 blockPos;
+    glm::ivec3 previousPos;
+};
+
 //Stores Render Chunk Info
 struct RenderRecord
 {
@@ -69,14 +75,21 @@ private:
     void UpdateCameraKeyboard(float deltaTime);
     void UpdateCameraMouse(float deltaX, float deltaY);
 
+    //Block Interaction
+    void UpdateBlockInteraction();
+
     //Chunk Mesh
     void BuildChunkMesher(ChunkPos pos, const Chunk&, const World& world);
+    void RebuildChunkMesher(ChunkPos pos);
     void GenerateChunksAroundCamera(ChunkPos cameraPos);
     void UnloadChunskAroundCamera(ChunkPos cameraPos);
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);
 
+    std::optional<BlockHit> RaycastBlock(const World& world, const glm::vec3& start, const glm::vec3& direction, float maxDistance);
+
+    glm::vec3 getFront() const;
 
 private:
     //Renderer resource ownership
