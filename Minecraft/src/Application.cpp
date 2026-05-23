@@ -199,9 +199,28 @@ void Application::UpdateCameraKeyboard(float deltaTime)
 void Application::UpdateBlockInteraction()
 {
     //BREAK BLOCK!!!
-    if (m_Window->IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+    if (m_Window->IsMouseButtonClicked(GLFW_MOUSE_BUTTON_LEFT))
     {
         //Break block
+        glm::vec3 currentChunk = m_Camera->GetPosition();
+
+        //3 block distance
+        auto hit = RaycastBlock(*m_World, currentChunk, getFront(), 3.0f);
+
+        if (hit)
+        {
+            if (m_World->SetBlockWorld(hit->blockPos.x, hit->blockPos.y, hit->blockPos.z, BlockType::Air))
+            {
+                //Remesh the edited chunk
+                ChunkPos rayChunk = World::fromWorldPosition(glm::vec3(hit->blockPos.x, hit->blockPos.y, hit->blockPos.z));
+
+                //REMESH!!!
+                RebuildChunkMesher(rayChunk);
+
+                //Log
+                MC_CORE_INFO("LEFT CLICK PRESSED");
+            }
+        }
     }
 
     //PLACE BLOCK!!!

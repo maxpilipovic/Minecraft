@@ -31,9 +31,13 @@ public:
 
     bool getPreviousRightMouse() const;
     bool getCurrentRightMouse() const;
+    bool getPreviousLeftMouse() const;
+    bool getCurrentLeftMouse() const;
 
     void setPreviousRightMouse(bool pressed);
     void setCurrentRightMouse(bool pressed);
+    void setPreviousLeftMouse(bool pressed);
+    void setCurrentLeftMouse(bool pressed);
 
 private:
     void Init();
@@ -52,6 +56,8 @@ private:
     //Mouse Clicks
     bool m_PreviousRightMouse = false;
     bool m_CurrentRightMouse = false;
+    bool m_PreviousLeftMouse = false;
+    bool m_CurrentLeftMouse = false;
 
     bool m_VSync = true;
 };

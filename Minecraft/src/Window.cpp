@@ -17,8 +17,10 @@ Window::~Window()
 void Window::PollEvents()
 {
     setPreviousRightMouse(getCurrentRightMouse());
+    setPreviousLeftMouse(getCurrentLeftMouse());
     glfwPollEvents();
     setCurrentRightMouse(glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+    setCurrentLeftMouse(glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
 }
 
 void Window::SwapBuffers() const
@@ -101,6 +103,11 @@ bool Window::IsMouseButtonPressed(int button) const
         return getCurrentRightMouse();
     }
 
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+        return getCurrentLeftMouse();
+    }
+
     return glfwGetMouseButton(m_Window, button) == GLFW_PRESS;
 }
 
@@ -109,6 +116,11 @@ bool Window::IsMouseButtonClicked(int button) const
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
         return getCurrentRightMouse() && !getPreviousRightMouse();
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+        return getCurrentLeftMouse() && !getPreviousLeftMouse();
     }
 
     return false;
@@ -132,6 +144,26 @@ void Window::setPreviousRightMouse(bool pressed)
 void Window::setCurrentRightMouse(bool pressed)
 {
     m_CurrentRightMouse = pressed;
+}
+
+bool Window::getPreviousLeftMouse() const
+{
+    return m_PreviousLeftMouse;
+}
+
+bool Window::getCurrentLeftMouse() const
+{
+    return m_CurrentLeftMouse;
+}
+
+void Window::setPreviousLeftMouse(bool pressed)
+{
+    m_PreviousLeftMouse = pressed;
+}
+
+void Window::setCurrentLeftMouse(bool pressed)
+{
+    m_CurrentLeftMouse = pressed;
 }
 
 //Get Mouse Pos
