@@ -188,6 +188,12 @@ ChunkMeshes BuildChunkMesh(const Chunk& chunk, ChunkPos pos, const World& world)
 					case BlockType::Grass:
 						mesh.Grass = GrassMesh(mesh.Grass, chunk, x, y, z, pos, world);
 						break;
+					case BlockType::Log:
+						mesh.Log = LogMesh(mesh.Log, chunk, x, y, z, pos, world);
+						break;
+					case BlockType::Leaves:
+						mesh.Leaves = LeavesMesh(mesh.Leaves, chunk, x, y, z, pos, world);
+						break;
 					case BlockType::Air:
 						//Do nothing
 						break;
@@ -219,6 +225,18 @@ ChunkMesh DirtMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, Chu
 }
 
 ChunkMesh GrassMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world)
+{
+	AddFaces(mesh, chunk, x, y, z, pos, world);
+	return mesh;
+}
+
+ChunkMesh LogMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world)
+{
+	AddFaces(mesh, chunk, x, y, z, pos, world);
+	return mesh;
+}
+
+ChunkMesh LeavesMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world)
 {
 	AddFaces(mesh, chunk, x, y, z, pos, world);
 	return mesh;

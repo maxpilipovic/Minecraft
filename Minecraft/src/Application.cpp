@@ -151,7 +151,8 @@ void Application::Init()
     m_CubeTexture2 = std::make_unique<Texture>("../images/sand.png");
     m_CubeTexture3 = std::make_unique<Texture>("../images/stone3.png");
     m_CubeTexture4 = std::make_unique<Texture>("../images/grass4.png");
-
+    m_CubeTexture5 = std::make_unique<Texture>("../images/oak_log.png");
+    m_CubeTexture6 = std::make_unique<Texture>("../images/oak_leaves.png");
     
     m_CubeShader->Bind();
     m_CubeShader->SetUniform1i("u_Texture", 0);
@@ -343,6 +344,8 @@ void Application::Shutdown()
     m_CubeTexture2.reset();
     m_CubeTexture3.reset();
     m_CubeTexture4.reset();
+    m_CubeTexture5.reset();
+    m_CubeTexture6.reset();
 
     m_CubeShader.reset();
     m_Camera.reset();
@@ -451,7 +454,7 @@ void Application::Render()
     Renderer::Clear();
 
     //Skip drawing chunk geometry until all required scene resources are ready.
-    if (!m_Window || !m_CubeShader || !m_CubeTexture || !m_CubeTexture2 || !m_CubeTexture3 || !m_CubeTexture4 || !m_Camera)
+    if (!m_Window || !m_CubeShader || !m_CubeTexture || !m_CubeTexture2 || !m_CubeTexture3 || !m_CubeTexture4 || !m_CubeTexture5 || !m_CubeTexture6 || !m_Camera)
     {
         return;
     }
@@ -499,6 +502,19 @@ void Application::Render()
             m_CubeTexture4->Bind(0);
             Renderer::Draw(*record.grass.VAO, *record.grass.IBO, *m_CubeShader);
         }
+
+        if (CheckValid(record.log))
+        {
+            m_CubeTexture5->Bind(0);
+            Renderer::Draw(*record.log.VAO, *record.log.IBO, *m_CubeShader);
+        }
+
+        if (CheckValid(record.leaves))
+        {
+            m_CubeTexture6->Bind(0);
+            Renderer::Draw(*record.leaves.VAO, *record.leaves.IBO, *m_CubeShader);
+        }
+
     }
 
     //Move Camera
@@ -524,6 +540,8 @@ void Application::BuildChunkMesher(ChunkPos pos, const Chunk& chunk, const World
     UploadMesh(mesh.Sand, record.sand);
     UploadMesh(mesh.Stone, record.stone);
     UploadMesh(mesh.Grass, record.grass);
+    UploadMesh(mesh.Log, record.log);
+    UploadMesh(mesh.Leaves, record.leaves);
 
     m_ChunkData.push_back(std::move(record));
 }

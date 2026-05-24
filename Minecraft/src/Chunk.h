@@ -9,7 +9,9 @@ enum class BlockType : uint8_t
     Sand,
     Dirt,
     Stone,
-    Grass
+    Grass,
+    Log, 
+    Leaves
 };
 
 //Not used

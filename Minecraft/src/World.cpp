@@ -243,7 +243,14 @@ Chunk World::CreateChunk(ChunkPos pos) const
 {
 
     Chunk chunk;
+    GenerateTerrain(chunk, pos);
+    GenerateTrees(chunk, pos);
 
+    return chunk;
+}
+
+void World::GenerateTerrain(Chunk& chunk, ChunkPos pos) const
+{
     //Generate TERRAIN GENERATION!!
     for (int z{}; z < Chunk::Depth; z++)
     {
@@ -275,8 +282,100 @@ Chunk World::CreateChunk(ChunkPos pos) const
             }
         }
     }
+}
 
-    return chunk;
+void World::GenerateTrees(Chunk& chunk, ChunkPos pos) const
+{
+    //Generate TREES
+    for (int z = 2; z < Chunk::Depth - 2; z++)
+    {
+        for (int x = 2; x < Chunk::Width - 2; x++)
+        {
+            const int worldX = pos.x * Chunk::Width + x;
+            const int worldZ = pos.z * Chunk::Depth + z;
+
+            //Random noise
+            if ((worldX * 31 + worldZ * 17) % 97 != 0)
+            {
+                continue;
+            }
+
+            //Find surface level y.
+            int surfaceY = -1;
+            for (int y = Chunk::Height - 1; y >= 0; y--)
+            {
+                if (chunk.GetBlock(x, y, z) != BlockType::Air)
+                {
+                    surfaceY = y;
+                    break;
+                }
+            }
+
+            //We dont want to render when less then 0. (underground)
+            if (surfaceY < 0)
+            {
+                continue;
+            }
+
+            //Check if grass
+            if (chunk.GetBlock(x, surfaceY, z) != BlockType::Grass)
+            {
+                continue;
+            }
+
+            const int trunkHeight = 4;
+            const int trunkBaseY = surfaceY + 1;
+
+            //Check height
+            if (trunkBaseY + trunkHeight + 2 >= Chunk::Height)
+            {
+                continue;
+            }
+
+            //Trunk
+            for (int y = 0; y < trunkHeight; y++)
+            {
+                chunk.SetBlock(x, trunkBaseY + y, z, BlockType::Log);
+            }
+
+            //Leaves blob
+            const int leafCenterY = trunkBaseY + trunkHeight;
+
+            for (int ly = -2; ly <= 2; ly++)
+            {
+                for (int lz = -2; lz <= 2; lz++)
+                {
+                    for (int lx = -2; lx <= 2; lx++)
+                    {
+
+                        int dist = abs(lx) + abs(ly) + abs(lz);
+
+                        //Filter out corners
+                        if (dist > 3)
+                        {
+                            continue;
+                        }
+
+                        int leafX = x + lx;
+                        int leafY = leafCenterY + ly;
+                        int leafZ = z + lz;
+
+                        if (leafX < 0 || leafX >= Chunk::Width || 
+                            leafY < 0 || leafY >= Chunk::Height ||
+                            leafZ < 0 || leafZ >= Chunk::Depth)
+                        {
+                            continue;
+                        }
+
+                        if (chunk.GetBlock(leafX, leafY, leafZ) == BlockType::Air)
+                        {
+                            chunk.SetBlock(leafX, leafY, leafZ, BlockType::Leaves);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 BlockType World::GetBlockWorld(int worldX, int worldY, int worldZ) const

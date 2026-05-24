@@ -49,6 +49,8 @@ struct RenderRecord
     RenderMesh dirt;
     RenderMesh stone;
     RenderMesh sand;
+    RenderMesh log;
+    RenderMesh leaves;
 };
 
 class Application
@@ -99,6 +101,8 @@ private:
     std::unique_ptr<Texture> m_CubeTexture2;
     std::unique_ptr<Texture> m_CubeTexture3;
     std::unique_ptr<Texture> m_CubeTexture4;
+    std::unique_ptr<Texture> m_CubeTexture5;
+    std::unique_ptr<Texture> m_CubeTexture6;
     std::unique_ptr<Camera> m_Camera;
 
     //World

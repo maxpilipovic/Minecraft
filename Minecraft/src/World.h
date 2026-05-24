@@ -49,6 +49,10 @@ public:
 	BiomeType getBiome(const FastNoiseLite& biomeNoise, int worldX, int worldZ) const;
 	BlockType getSurfaceBlock(BiomeType biome) const;
 
+	//World
+	void GenerateTerrain(Chunk& chunk, ChunkPos pos) const;
+	void GenerateTrees(Chunk& chunk, ChunkPos pos) const;
+
 	//Breaking/Placing
 	BlockType GetBlockWorld(int worldX, int worldY, int worldZ) const;
 	bool SetBlockWorld(int worldX, int worldY, int worldZ, BlockType block);

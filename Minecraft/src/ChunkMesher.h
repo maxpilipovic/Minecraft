@@ -10,6 +10,8 @@ struct ChunkMeshes
 	ChunkMesh Stone;
 	ChunkMesh Dirt;
 	ChunkMesh Grass;
+	ChunkMesh Log;
+	ChunkMesh Leaves;
 };
 
 ChunkMeshes BuildChunkMesh(const Chunk& chunk, ChunkPos pos, const World& world);
@@ -19,6 +21,8 @@ ChunkMesh SandMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, Chu
 ChunkMesh StoneMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
 ChunkMesh DirtMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
 ChunkMesh GrassMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
+ChunkMesh LogMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
+ChunkMesh LeavesMesh(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
 
 //Add Faces
 void AddFaces(ChunkMesh& mesh, const Chunk& chunk, int x, int y, int z, ChunkPos pos, const World& world);
