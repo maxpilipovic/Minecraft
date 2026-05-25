@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Chunk.h"
 #include "World.h"
+#include "Player.h"
 
 #include <mutex>
 #include <queue>
@@ -73,8 +74,8 @@ private:
     void Update(float dt);
     void Render();
 
-    //Update Camera
-    void UpdateCameraKeyboard(float deltaTime);
+    //Update Camera/Player
+    void UpdatePlayer(float deltaTime);
     void UpdateCameraMouse(float deltaX, float deltaY);
 
     //Block Interaction
@@ -88,6 +89,9 @@ private:
 
     bool CheckValid(const RenderMesh& gpu);
     void UploadMesh(const ChunkMesh& mesh, RenderMesh& gpu);
+
+    bool IsPlayerColliding(glm::vec3 position);
+    void MovePlayerAxis(const glm::vec3& movement);
 
     std::optional<BlockHit> RaycastBlock(const World& world, const glm::vec3& start, const glm::vec3& direction, float maxDistance);
 
@@ -104,6 +108,8 @@ private:
     std::unique_ptr<Texture> m_CubeTexture5;
     std::unique_ptr<Texture> m_CubeTexture6;
     std::unique_ptr<Camera> m_Camera;
+
+    Player m_Player;
 
     //World
     std::unique_ptr<World> m_World;

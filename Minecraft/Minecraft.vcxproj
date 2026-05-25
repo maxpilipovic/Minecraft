@@ -103,6 +103,7 @@
     <ClInclude Include="src\ChunkMesh.h" />
     <ClInclude Include="src\ChunkMesher.h" />
     <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
     <ClInclude Include="src\Renderer\Shader.h" />
@@ -127,6 +128,7 @@
     <ClCompile Include="src\Chunk.cpp" />
     <ClCompile Include="src\ChunkMesher.cpp" />
     <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Renderer\Shader.cpp" />

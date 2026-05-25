@@ -139,12 +139,31 @@ void Application::Init()
         });
 
     //Create Camera
-    m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 4.0f, 20.0f));
+    m_Camera = std::make_unique<Camera>(glm::vec3(8.0f, 20.0f, 20.0f));
+
+    //Set camera pos.
+    m_Camera->SetPosition(m_Player.position + glm::vec3(0.0f, m_Player.eyeHeight, 0.0f));
 
     ChunkPos cameraChunk = World::fromWorldPosition(m_Camera->GetPosition());
-    GenerateChunksAroundCamera(cameraChunk);
-
+    
     m_CubeShader = std::make_unique<Shader>(vertexSource, fragmentSource);
+
+    //Preload first chunk or FALL through world
+    ChunkPos spawnChunk = World::fromWorldPosition(m_Player.position);
+    Chunk spawn = m_World->CreateChunk(spawnChunk);
+
+    m_World->AddChunk(spawnChunk, std::move(spawn));
+
+    const Chunk* chunk = m_World->GetChunk(spawnChunk);
+
+    if (chunk)
+    {
+        BuildChunkMesher(spawnChunk, *chunk, *m_World);
+        m_MeshedChunks.insert(spawnChunk);
+    }
+
+    //Generate remainder chunks
+    GenerateChunksAroundCamera(cameraChunk);
 
     //Textures
     m_CubeTexture = std::make_unique<Texture>("../images/dirt2.png");
@@ -161,39 +180,135 @@ void Application::Init()
     m_LastFrameTime = glfwGetTime();
 }
 
-void Application::UpdateCameraKeyboard(float deltaTime)
+void Application::UpdatePlayer(float deltaTime)
 {
-    float moveSpeed = 5.0f * deltaTime;
-    float turnSpeed = 50.0f * deltaTime;
+    float moveSpeed = 5.0f;
+    float gravity = 25.0f;
+    float jumpSpeed = 8.0f;
+    float eyeHeight = m_Player.eyeHeight;
+
+    //Grab cameras forward direction. Does not allow move up
+    glm::vec3 forward = m_Camera->getFront();
+    forward.y = 0.0f;
+
+    //Forward length 1, movement is consistent.
+    if (glm::length(forward) > 0.0f)
+    {
+        forward = glm::normalize(forward);
+    }
+
+    //Sidways direction
+    glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+
+    //Wishdir
+    glm::vec3 wishDir({ 0.0f });
 
     if (m_Window->IsKeyPressed(GLFW_KEY_W))
     {
-        m_Camera->MoveForward(moveSpeed);
+        wishDir += forward;
     }
 
     if (m_Window->IsKeyPressed(GLFW_KEY_S))
     {
-        m_Camera->MoveForward(-moveSpeed);
+        wishDir -= forward;
     }
 
     if (m_Window->IsKeyPressed(GLFW_KEY_D))
     {
-        m_Camera->MoveRight(moveSpeed);
+        wishDir += right;
     }
 
     if (m_Window->IsKeyPressed(GLFW_KEY_A))
     {
-        m_Camera->MoveRight(-moveSpeed);
+        wishDir -= right;
     }
 
     if (m_Window->IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
     {
-        m_Camera->MovePosition(glm::vec3(0.0f, -moveSpeed, 0.0f));
+        //Drop eye height
+        eyeHeight = 1.2f;
+
+        //Drop move speed
+        moveSpeed = 2.5f;
+    }
+    
+
+    if (glm::length(wishDir) > 0.0f)
+    {
+        wishDir = glm::normalize(wishDir);
     }
 
-    if (m_Window->IsKeyPressed(GLFW_KEY_SPACE))
+    m_Player.velocity.x = wishDir.x * moveSpeed;
+    m_Player.velocity.z = wishDir.z * moveSpeed;
+
+    m_Player.velocity.y -= gravity * deltaTime;
+
+    if (m_Player.onGround && m_Window->IsKeyPressed(GLFW_KEY_SPACE))
     {
-        m_Camera->MovePosition(glm::vec3(0.0f, moveSpeed, 0.0f));
+        m_Player.velocity.y = jumpSpeed;
+        m_Player.onGround = false;
+    }
+
+    m_Player.onGround = false;
+
+    MovePlayerAxis(glm::vec3(m_Player.velocity.x * deltaTime, 0.0f, 0.0f));
+    MovePlayerAxis(glm::vec3(0.0f, m_Player.velocity.y * deltaTime, 0.0f));
+    MovePlayerAxis(glm::vec3(0.0f, 0.0f, m_Player.velocity.z * deltaTime));
+
+    m_Camera->SetPosition(m_Player.position + glm::vec3(0.0f, eyeHeight, 0.0f));
+
+    //Bring back from shift
+    eyeHeight = 1.6f;
+}
+
+bool Application::IsPlayerColliding(glm::vec3 position)
+{
+    float halfWidth = m_Player.width * 0.5f;
+
+    int minX = static_cast<int>(std::floor(position.x - halfWidth));
+    int maxX = static_cast<int>(std::floor(position.x + halfWidth));
+
+    int minY = static_cast<int>(std::floor(position.y));
+    int maxY = static_cast<int>(std::floor(position.y + m_Player.height));
+
+    int minZ = static_cast<int>(std::floor(position.z - halfWidth));
+    int maxZ = static_cast<int>(std::floor(position.z + halfWidth));
+
+    for (int z = minZ; z <= maxZ; z++)
+    {
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
+            {
+                if (m_World->GetBlockWorld(x, y, z) != BlockType::Air)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+void Application::MovePlayerAxis(const glm::vec3& movement)
+{
+    glm::vec3 nextPosition = m_Player.position + movement;
+
+    if (!IsPlayerColliding(nextPosition))
+    {
+        m_Player.position = nextPosition;
+        return;
+    }
+
+    if (movement.y < 0.0f)
+    {
+        m_Player.onGround = true;
+        m_Player.velocity.y = 0.0f;
+    }
+    else if (movement.y > 0.0f)
+    {
+        m_Player.velocity.y = 0.0f;
     }
 }
 
@@ -376,7 +491,7 @@ void Application::Update(float dt)
 {
 
     //Update Keyboard
-    UpdateCameraKeyboard(dt);
+    UpdatePlayer(dt);
 
     //Update Mouse
     UpdateBlockInteraction();

@@ -44,6 +44,7 @@
     <ClInclude Include="src\ChunkMesh.h" />
     <ClInclude Include="src\ChunkMesher.h" />
     <ClInclude Include="src\World.h" />
+    <ClInclude Include="src\Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\glad\src\glad.c">
@@ -95,5 +96,6 @@
     <ClCompile Include="src\Chunk.cpp" />
     <ClCompile Include="src\ChunkMesher.cpp" />
     <ClCompile Include="src\World.cpp" />
+    <ClCompile Include="src\Player.cpp" />
   </ItemGroup>
 </Project>
