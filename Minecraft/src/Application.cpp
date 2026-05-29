@@ -25,6 +25,7 @@ Application::Application()
     Logger::Init();
 
 	Init();
+    m_Gui.Init(*m_Window);
 }
 
 Application::~Application()
@@ -43,6 +44,9 @@ void Application::Run()
 
         Update(dt);
         Render();
+
+        //Update gui
+        m_Gui.Update(m_DebugMenuOpen);
 
         m_Window->SwapBuffers();
         m_Window->PollEvents();
@@ -489,6 +493,13 @@ void Application::UnloadShutDownChunk(ChunkPos pos)
 
 void Application::Update(float dt)
 {
+    const bool debugTogglePressed = m_Window->IsKeyPressed(GLFW_KEY_Q);
+    if (debugTogglePressed && !m_DebugMenuTogglePressed)
+    {
+        //Flips opposite
+        m_DebugMenuOpen = !m_DebugMenuOpen;
+    }
+    m_DebugMenuTogglePressed = debugTogglePressed;
 
     //Update Keyboard
     UpdatePlayer(dt);

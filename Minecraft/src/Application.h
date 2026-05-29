@@ -6,6 +6,7 @@
 #include "Chunk.h"
 #include "World.h"
 #include "Player.h"
+#include "Gui.h"
 
 #include <mutex>
 #include <queue>
@@ -110,6 +111,7 @@ private:
     std::unique_ptr<Camera> m_Camera;
 
     Player m_Player;
+    Gui m_Gui;
 
     //World
     std::unique_ptr<World> m_World;
@@ -121,6 +123,8 @@ private:
 
     float m_CubeRotation = 0.0f;
     bool m_Running = false;
+    bool m_DebugMenuOpen = false;
+    bool m_DebugMenuTogglePressed = false;
     double m_LastFrameTime = 0.0;
     Chunk m_Chunk;
 
